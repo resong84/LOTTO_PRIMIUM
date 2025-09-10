@@ -1,4 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- 환경 감지 및 경로 설정 (가장 먼저 실행) ---
+    const isAndroid = window.location.protocol === 'file:';
+    const basePath = isAndroid ? 'file:///android_asset/' : './';
+
+    // CSS의 @font-face를 동적으로 생성하여 환경에 맞는 경로를 사용하도록 함
+    const fontStyles = `
+        @font-face {
+            font-family: 'GmarketSans';
+            src: url('${basePath}fonts/GmarketSansTTFMedium.ttf') format('truetype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'GmarketSans';
+            src: url('${basePath}fonts/GmarketSansTTFBold.ttf') format('truetype');
+            font-weight: bold;
+        }
+    `;
+    const styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = fontStyles;
+    document.head.appendChild(styleSheet);
+    // --- 경로 설정 끝 ---
+
+
     const generateButton = document.getElementById('generate-button');
     const outputText = document.getElementById('output-text');
     let probDf = null; // 이 변수를 모든 기능에서 공통으로 사용합니다.
@@ -19,10 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data Loading and Parsing ---
     async function loadData() {
         try {
-            // [수정] lotto_data.txt와 lottoHistory.json을 함께 불러오도록 수정
+            // [수정] lotto_data.txt와 lottoHistory.json을 basePath를 사용하여 불러오도록 수정
             const [dataResponse, historyResponse] = await Promise.all([
-                fetch('file:///android_asset/lotto_data.txt'),
-                fetch('file:///android_asset/lottoHistory.json')
+                fetch(`${basePath}lotto_data.txt`),
+                fetch(`${basePath}lottoHistory.json`)
             ]);
 
             if (!dataResponse.ok) {
@@ -927,4 +951,4 @@ async function createPost() {
 }
 
 // [삭제됨] 중복 데이터이므로 이 큰 객체는 삭제합니다.
-// const lottoData = { ... };
+// const lottoData = { ... };fs

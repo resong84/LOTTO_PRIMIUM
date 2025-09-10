@@ -1,14 +1,3 @@
-@font-face {
-    font-family: 'GmarketSans'; /* 우리가 사용할 폰트 이름 */
-    src: url('file:///android_asset/fonts/GmarketSansTTFMedium.ttf') format('truetype');
-    font-weight: normal;
-}
-
-@font-face {
-    font-family: 'GmarketSans'; /* 같은 이름 사용 */
-    src: url('file:///android_asset/fonts/GmarketSansTTFBold.ttf') format('truetype');
-    font-weight: bold; /* 굵은 글씨가 필요할 때 이 폰트가 적용됨 */
-}
 body {
     font-family: 'GmarketSans', sans-serif; /* GmarketSans를 최우선으로 사용 */
     background-color: #f0f2f5;
