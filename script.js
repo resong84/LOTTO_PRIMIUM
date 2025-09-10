@@ -665,20 +665,24 @@ function checkLottoStats() {
 
             function makePartition(title, arr, rank) {
                 if (arr.length === 0) return '';
+                
+                let listItems = '';
+                arr.forEach(item => {
+                    const matchedNums = nums;
+                    const winNums = item.numbers.map(n => matchedNums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
+                    listItems += `<li class="partition-${rank}">${title} - ${item.draw}회 [${winNums}]</li>`;
+                });
+
+                // 필터링 조건(maxRank)을 만족하는 당첨이 있을 경우에만 isWinFound를 true로 설정
                 if (rank <= maxRank) {
                     isWinFound = true;
-                    let listItems = '';
-                    arr.forEach(item => {
-                        const matchedNums = nums;
-                        const winNums = item.numbers.map(n => matchedNums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
-                        listItems += `<li class="partition-${rank}">${title} - ${item.draw}회 [${winNums}]</li>`;
-                    });
-                    return listItems;
                 }
-                return '';
+                
+                return listItems;
             }
             
             let fullList = '';
+            // 각 등수별로 결과를 생성하되, 화면 표시는 maxRank 필터에 따라 CSS로 처리될 수 있도록 모든 결과를 생성
             fullList += makePartition('🥇 1등', first, 1);
             fullList += makePartition('🥈 2등', second, 2);
             fullList += makePartition('🥉 3등', third, 3);
