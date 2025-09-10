@@ -629,9 +629,7 @@ function checkLottoStats() {
     isWinFound = false;
     const maxRank = parseInt(document.getElementById('rank-slider').value);
     
-    // [수정] 전역 변수 lottoHistory를 직접 사용하도록 수정
     if (!lottoHistory || lottoHistory.length === 0) {
-        // 데이터가 아직 로드되지 않았거나 비어있으면 함수 종료
         return;
     }
 
@@ -651,10 +649,18 @@ function checkLottoStats() {
                 const bonus = lottoHistory[i].bonus;
                 const match = nums.filter(n => win.includes(n)).length;
 
-                if (match === 6) first.push({draw: lottoHistory[i].draw, numbers: win});
-                else if (match === 5 && nums.includes(bonus)) second.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                else if (match === 5) third.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                else if (match === 4) fourth.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                if (match === 6) {
+                    first.push({draw: lottoHistory[i].draw, numbers: win});
+                } else if (match === 5) {
+                    const nonMatchingNum = nums.find(n => !win.includes(n));
+                    if (nonMatchingNum === bonus) {
+                        second.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                    } else {
+                        third.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                    }
+                } else if (match === 4) {
+                    fourth.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                }
             }
 
             function makePartition(title, arr, rank) {
@@ -951,4 +957,4 @@ async function createPost() {
 }
 
 // [삭제됨] 중복 데이터이므로 이 큰 객체는 삭제합니다.
-// const lottoData = { ... };fs
+// const lottoData = { ... };
