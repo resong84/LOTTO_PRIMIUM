@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateButton = document.getElementById('generate-button');
     const outputText = document.getElementById('output-text');
     let probDf = null; // 이 변수를 모든 기능에서 공통으로 사용합니다.
+    let lottoHistory = []; // [추가] lottoHistory 데이터를 담을 변수 선언
     let firstPlaceNumbers = new Set();
 
     // --- 랜딩 페이지 및 시작 버튼 로직 ---
@@ -18,25 +19,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data Loading and Parsing ---
     async function loadData() {
         try {
-            // APK 내부 경로를 사용하여 lotto_data.txt 파일을 불러옵니다.
-            const response = await fetch('file:///android_asset/lotto_data.txt');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            // [수정] lotto_data.txt와 lottoHistory.json을 함께 불러오도록 수정
+            const [dataResponse, historyResponse] = await Promise.all([
+                fetch('file:///android_asset/lotto_data.txt'),
+                fetch('file:///android_asset/lottoHistory.json')
+            ]);
+
+            if (!dataResponse.ok) {
+                throw new Error(`HTTP error! status: ${dataResponse.status}`);
             }
-            const dataText = await response.text();
-            // 불러온 데이터를 probDf 객체로 변환하여 전역 변수에 저장합니다.
-            probDf = parseAndPrepareData(dataText);
+            if (!historyResponse.ok) {
+                throw new Error(`HTTP error! status: ${historyResponse.status}`);
+            }
+
+            const dataText = await dataResponse.text();
+            probDf = parseAndPrepareData(dataText); // lotto_data.txt 파싱
+
+            lottoHistory = await historyResponse.json(); // lottoHistory.json 파싱 및 할당
+
+            // [수정] 데이터 로딩이 완료된 후 1등 번호 데이터를 처리하도록 호출 위치 변경
+            loadFirstPlaceData();
+
         } catch (e) {
-            alert(`'lotto_data.txt' 파일을 불러오는 데 실패했습니다: ${e.message}`);
+            alert(`데이터 파일을 불러오는 데 실패했습니다: ${e.message}`);
         }
     }
     
-    // lottoHistory.js를 직접 사용하여 1등 번호 데이터를 만듭니다.
+    // [수정] 전역 변수 lottoHistory를 직접 사용하도록 수정
     function loadFirstPlaceData() {
         firstPlaceNumbers = new Set();
         try {
-            if (typeof lottoHistory === 'undefined') {
-                throw new Error('lottoHistory 데이터가 로드되지 않았습니다.');
+            if (!lottoHistory || lottoHistory.length === 0) {
+                throw new Error('lottoHistory 데이터가 비어있습니다.');
             }
             lottoHistory.forEach(item => {
                 const winningNumbers = item.numbers;
@@ -264,7 +278,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 초기 데이터 로드
     loadData();
-    loadFirstPlaceData();
 
     // --- 당첨 통계 조회 기능 추가 ---
     renderLottoPaper();
@@ -592,8 +605,9 @@ function checkLottoStats() {
     isWinFound = false;
     const maxRank = parseInt(document.getElementById('rank-slider').value);
     
-    if (typeof lottoHistory === 'undefined') {
-        console.error("lottoHistory.js 파일이 로드되지 않았습니다.");
+    // [수정] 전역 변수 lottoHistory를 직접 사용하도록 수정
+    if (!lottoHistory || lottoHistory.length === 0) {
+        // 데이터가 아직 로드되지 않았거나 비어있으면 함수 종료
         return;
     }
 
