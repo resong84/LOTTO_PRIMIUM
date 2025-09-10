@@ -1,32 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 환경 감지 및 경로 설정 (가장 먼저 실행) ---
-    const isAndroid = window.location.protocol === 'file:';
-    const basePath = isAndroid ? 'file:///android_asset/' : './';
-
-    // CSS의 @font-face를 동적으로 생성하여 환경에 맞는 경로를 사용하도록 함
-    const fontStyles = `
-        @font-face {
-            font-family: 'GmarketSans';
-            src: url('${basePath}fonts/GmarketSansTTFMedium.ttf') format('truetype');
-            font-weight: normal;
-        }
-        @font-face {
-            font-family: 'GmarketSans';
-            src: url('${basePath}fonts/GmarketSansTTFBold.ttf') format('truetype');
-            font-weight: bold;
-        }
-    `;
-    const styleSheet = document.createElement("style");
-    styleSheet.type = "text/css";
-    styleSheet.innerText = fontStyles;
-    document.head.appendChild(styleSheet);
-    // --- 경로 설정 끝 ---
-
-
     const generateButton = document.getElementById('generate-button');
     const outputText = document.getElementById('output-text');
-    let probDf = null; // 이 변수를 모든 기능에서 공통으로 사용합니다.
-    let lottoHistory = []; // [추가] lottoHistory 데이터를 담을 변수 선언
+    let probDf = null;
     let firstPlaceNumbers = new Set();
 
     // --- 랜딩 페이지 및 시작 버튼 로직 ---
@@ -43,52 +18,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data Loading and Parsing ---
     async function loadData() {
         try {
-            // [수정] lotto_data.txt와 lottoHistory.json을 basePath를 사용하여 불러오도록 수정
-            const [dataResponse, historyResponse] = await Promise.all([
-                fetch(`${basePath}lotto_data.txt`),
-                fetch(`${basePath}lottoHistory.json`)
-            ]);
-
-            if (!dataResponse.ok) {
-                throw new Error(`HTTP error! status: ${dataResponse.status}`);
+            const response = await fetch('lotto_data.txt');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            if (!historyResponse.ok) {
-                throw new Error(`HTTP error! status: ${historyResponse.status}`);
-            }
-
-            const dataText = await dataResponse.text();
-            probDf = parseAndPrepareData(dataText); // lotto_data.txt 파싱
-
-            lottoHistory = await historyResponse.json(); // lottoHistory.json 파싱 및 할당
-
-            // [수정] 데이터 로딩이 완료된 후 1등 번호 데이터를 처리하도록 호출 위치 변경
-            loadFirstPlaceData();
-
+            const dataText = await response.text();
+            probDf = parseAndPrepareData(dataText);
         } catch (e) {
-            alert(`데이터 파일을 불러오는 데 실패했습니다: ${e.message}`);
+            alert(`'lotto_data.txt' 파일을 불러오는 데 실패했습니다: ${e.message}`);
         }
     }
-    
-    // [수정] 전역 변수 lottoHistory를 직접 사용하도록 수정
-    function loadFirstPlaceData() {
-        firstPlaceNumbers = new Set();
+
+    async function loadFirstPlaceData() {
+        firstPlaceNumbers = new Set(); 
         try {
-            if (!lottoHistory || lottoHistory.length === 0) {
-                throw new Error('lottoHistory 데이터가 비어있습니다.');
+            const response = await fetch('lotto_data_1st_number.txt');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-            lottoHistory.forEach(item => {
-                const winningNumbers = item.numbers;
+            const dataText = await response.text();
+            const lines = dataText.trim().split('\n');
+
+            lines.forEach((line, index) => {
+                if (index === 0 || line.trim() === '') {
+                    return;
+                }
+                const parts = line.split('\t');
+                if (parts.length < 8) {
+                    return; 
+                }
+                const winningNumbers = parts.slice(1, 7);
                 const combinationString = winningNumbers
+                                              .map(num => parseInt(num.trim()))
                                               .sort((a, b) => a - b)
                                               .join(',');
+                
                 firstPlaceNumbers.add(combinationString);
             });
         } catch (e) {
-            console.warn(`lottoHistory 데이터 처리 중 오류 발생: ${e.message}. '1등 번호 제외' 기능이 작동하지 않을 수 있습니다.`);
+            console.warn(`'lotto_data_1st_number.txt' 파일을 불러오는 데 실패했습니다: ${e.message}. '1등 번호 제외' 기능이 작동하지 않을 수 있습니다.`);
         }
     }
 
-    // lotto_data.txt 파일 내용을 파싱하여 probDf 객체를 생성하는 함수 (원본 유지)
     function parseAndPrepareData(dataText) {
         const lines = dataText.trim().split('\n');
         if (lines.length < 2) {
@@ -109,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 columns.push(baseName); 
                 columns.push(`${baseName}확률`); 
             } else {
-                throw new Error(`헤더 형식이 '칸 확률' 패턴과 다릅니다.`);
+                throw new Error(`헤더 형식이 '칸 확률' 패턴과 다릅니다. 문제의 부분: '${processedHeaders[i]} ${processedHeaders[i+1] || ''}'`);
             }
         }
 
@@ -142,11 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
             data: data,
             includes: function(colName) {
                 return this.columns.includes(colName);
+            },
+            filterNonZero: function(columnName) {
+                return this.data.filter(row => row[columnName] > 0);
             }
         };
     }
 
-    // 번호 생성기 로직 (원본 유지)
     function get_random_number_from_column(prob_df, column_name, selection_type, exclude_numbers = new Set()) {
         if (!prob_df || !prob_df.columns.includes(column_name)) {
             return null;
@@ -193,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return final_eligible_numbers[Math.floor(Math.random() * final_eligible_numbers.length)];
     }
 
-    // 번호 생성기 메인 함수 (원본 유지)
     function generateCombinations() {
         if (!probDf) {
             alert("데이터가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.");
@@ -302,6 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 초기 데이터 로드
     loadData();
+    loadFirstPlaceData();
 
     // --- 당첨 통계 조회 기능 추가 ---
     renderLottoPaper();
@@ -601,35 +574,25 @@ function resetLottoStats() {
     document.getElementById('game-B-placeholder').style.display = 'flex';
 }
 
-// [수정됨] probDf 객체를 사용하도록 함수 전체 변경
 function getCombinationProbability(numbers) {
-    // probDf 데이터가 아직 로드되지 않았으면 0을 반환
-    if (!probDf) return 0;
-
     let sum = 0;
     const sortedNumbers = [...numbers].sort((a, b) => a - b);
-    
     for (let i = 0; i < 6; i++) {
-        const colName = `${i + 1}칸확률`;
+        const colName = `${i+1}칸확률`;
         const num = sortedNumbers[i];
-        
-        // probDf.data 배열에서 해당 번호의 데이터를 찾습니다.
-        // 번호가 1부터 시작하므로 인덱스는 num - 1 입니다.
-        const rowData = probDf.data[num - 1];
-        
-        if (rowData && rowData.hasOwnProperty(colName)) {
-            sum += rowData[colName];
+        if (typeof lottoData !== 'undefined' && lottoData[colName] && lottoData[colName][num]) {
+            sum += lottoData[colName][num];
         }
     }
     return (sum / 6).toFixed(2);
 }
 
-
 function checkLottoStats() {
     isWinFound = false;
     const maxRank = parseInt(document.getElementById('rank-slider').value);
     
-    if (!lottoHistory || lottoHistory.length === 0) {
+    if (typeof lottoHistory === 'undefined') {
+        console.error("lottoHistory.js 파일이 로드되지 않았습니다.");
         return;
     }
 
@@ -649,40 +612,28 @@ function checkLottoStats() {
                 const bonus = lottoHistory[i].bonus;
                 const match = nums.filter(n => win.includes(n)).length;
 
-                if (match === 6) {
-                    first.push({draw: lottoHistory[i].draw, numbers: win});
-                } else if (match === 5) {
-                    const nonMatchingNum = nums.find(n => !win.includes(n));
-                    if (nonMatchingNum === bonus) {
-                        second.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                    } else {
-                        third.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                    }
-                } else if (match === 4) {
-                    fourth.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                }
+                if (match === 6) first.push({draw: lottoHistory[i].draw, numbers: win});
+                else if (match === 5 && nums.includes(bonus)) second.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                else if (match === 5) third.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                else if (match === 4) fourth.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
             }
 
             function makePartition(title, arr, rank) {
                 if (arr.length === 0) return '';
-                
-                let listItems = '';
-                arr.forEach(item => {
-                    const matchedNums = nums;
-                    const winNums = item.numbers.map(n => matchedNums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
-                    listItems += `<li class="partition-${rank}">${title} - ${item.draw}회 [${winNums}]</li>`;
-                });
-
-                // 필터링 조건(maxRank)을 만족하는 당첨이 있을 경우에만 isWinFound를 true로 설정
                 if (rank <= maxRank) {
                     isWinFound = true;
+                    let listItems = '';
+                    arr.forEach(item => {
+                        const matchedNums = nums;
+                        const winNums = item.numbers.map(n => matchedNums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
+                        listItems += `<li class="partition-${rank}">${title} - ${item.draw}회 [${winNums}]</li>`;
+                    });
+                    return listItems;
                 }
-                
-                return listItems;
+                return '';
             }
             
             let fullList = '';
-            // 각 등수별로 결과를 생성하되, 화면 표시는 maxRank 필터에 따라 CSS로 처리될 수 있도록 모든 결과를 생성
             fullList += makePartition('🥇 1등', first, 1);
             fullList += makePartition('🥈 2등', second, 2);
             fullList += makePartition('🥉 3등', third, 3);
@@ -787,6 +738,7 @@ function renderPage(page) {
         let imageButtonHTML = '';
         const imageUrl = post.image1_url || post.image2_url;
         if (imageUrl) {
+            // Use a data attribute instead of onclick for better event handling
             imageButtonHTML = `<button class="view-image-btn" data-image-url="${imageUrl}">이미지</button>`;
         }
 
@@ -807,6 +759,7 @@ function renderPage(page) {
         feed.appendChild(postElement); 
     });
 
+    // Add event listeners to the newly created image buttons
     feed.querySelectorAll('.view-image-btn').forEach(button => {
         button.addEventListener('click', (event) => {
             const url = event.currentTarget.dataset.imageUrl;
@@ -960,5 +913,11 @@ async function createPost() {
     }
 }
 
-// [삭제됨] 중복 데이터이므로 이 큰 객체는 삭제합니다.
-// const lottoData = { ... };
+const lottoData = {
+    "1칸확률": { 1: 12.83, 2: 12.40, 3: 9.43, 4: 10.20, 5: 7.82, 6: 7.22, 7: 5.52, 8: 4.84, 9: 5.95, 10: 4.16, 11: 3.82, 12: 3.23, 13: 1.87, 14: 2.04, 15: 1.87, 16: 1.44, 17: 0.85, 18: 0.93, 19: 0.51, 20: 0.93, 21: 0.17, 22: 0.34, 23: 0.51, 24: 0.42, 25: 0.17, 26: 0.25, 27: 0.17, 28: 0.00, 29: 0.08, 30: 0.00, 31: 0.00, 32: 0.00, 33: 0.00, 34: 0.00, 35: 0.00, 36: 0.00, 37: 0.00, 38: 0.00, 39: 0.00, 40: 0.00, 41: 0.00, 42: 0.00, 43: 0.00, 44: 0.00, 45: 0.00 },
+    "2칸확률": { 1: 0.00, 2: 1.44, 3: 2.72, 4: 3.91, 5: 4.93, 6: 4.50, 7: 4.50, 8: 5.61, 9: 5.69, 10: 5.95, 11: 6.12, 12: 6.46, 13: 4.84, 14: 3.99, 15: 4.16, 16: 4.33, 17: 3.82, 18: 4.50, 19: 4.25, 20: 2.89, 21: 2.12, 22: 2.12, 23: 0.85, 24: 1.87, 25: 1.61, 26: 1.44, 27: 1.44, 28: 0.93, 29: 0.85, 30: 0.59, 31: 0.68, 32: 0.25, 33: 0.08, 34: 0.25, 35: 0.08, 36: 0.08, 37: 0.08, 38: 0.00, 39: 0.00, 40: 0.00, 41: 0.00, 42: 0.00, 43: 0.00, 44: 0.00, 45: 0.00 },
+    "3칸확률": { 1: 0.00, 2: 0.00, 3: 0.00, 4: 0.34, 5: 1.02, 6: 0.85, 7: 1.78, 8: 1.70, 9: 1.70, 10: 3.91, 11: 2.89, 12: 4.08, 13: 4.25, 14: 4.33, 15: 4.16, 16: 4.59, 17: 4.33, 18: 3.91, 19: 4.67, 20: 4.67, 21: 5.44, 22: 5.18, 23: 4.08, 24: 4.08, 25: 3.06, 26: 4.42, 27: 3.48, 28: 3.31, 29: 2.89, 30: 2.04, 31: 1.19, 32: 2.04, 33: 1.95, 34: 0.76, 35: 1.10, 36: 0.51, 37: 0.42, 38: 0.42, 39: 0.17, 40: 0.17, 41: 0.00, 42: 0.08, 43: 0.00, 44: 0.00, 45: 0.00 },
+    "4칸확률": { 1: 0.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.08, 7: 0.17, 8: 0.68, 9: 0.34, 10: 0.42, 11: 0.68, 12: 0.85, 13: 1.87, 14: 2.04, 15: 1.78, 16: 1.70, 17: 3.40, 18: 3.06, 19: 2.80, 20: 3.14, 21: 3.74, 22: 3.74, 23: 4.76, 24: 4.84, 25: 4.16, 26: 4.84, 27: 4.50, 28: 5.01, 29: 4.50, 30: 4.84, 31: 4.76, 32: 4.08, 33: 3.99, 34: 3.14, 35: 4.16, 36: 2.12, 37: 3.65, 38: 1.78, 39: 1.02, 40: 1.44, 41: 1.44, 42: 0.25, 43: 0.17, 44: 0.00, 45: 0.00 },
+    "5칸확률": { 1: 0.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.08, 9: 0.08, 10: 0.08, 11: 0.08, 12: 0.00, 13: 0.08, 14: 0.42, 15: 0.25, 16: 0.76, 17: 0.59, 18: 0.85, 19: 1.10, 20: 1.10, 21: 2.04, 22: 1.02, 23: 2.29, 24: 2.29, 25: 2.63, 26: 2.12, 27: 3.91, 28: 4.84, 29: 3.31, 30: 3.57, 31: 4.50, 32: 4.93, 33: 5.01, 34: 6.29, 35: 6.29, 36: 5.44, 37: 5.01, 38: 5.35, 39: 5.69, 40: 4.93, 41: 4.08, 42: 4.50, 43: 2.63, 44: 1.78, 45: 0.00 },
+    "6칸확률": { 1: 0.00, 2: 0.00, 3: 0.00, 4: 0.00, 5: 0.00, 6: 0.00, 7: 0.00, 8: 0.00, 9: 0.00, 10: 0.00, 11: 0.00, 12: 0.00, 13: 0.00, 14: 0.00, 15: 0.00, 16: 0.00, 17: 0.00, 18: 0.00, 19: 0.00, 20: 0.08, 21: 0.08, 22: 0.34, 23: 0.25, 24: 0.76, 25: 0.51, 26: 1.36, 27: 0.59, 28: 1.10, 29: 1.44, 30: 0.93, 31: 1.78, 32: 2.55, 33: 1.61, 34: 2.55, 35: 2.72, 36: 4.08, 37: 5.01, 38: 5.18, 39: 6.63, 40: 7.22, 41: 7.22, 42: 8.75, 43: 10.37, 44: 11.98, 45: 14.87 }
+};

@@ -1,5 +1,27 @@
+@font-face {
+    font-family: 'GmarketSans';
+    src: url('fonts/GmarketSansTTFLight.ttf') format('truetype');
+    font-weight: 300; /* Light */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'GmarketSans';
+    src: url('fonts/GmarketSansTTFMedium.ttf') format('truetype');
+    font-weight: 500; /* Medium */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'GmarketSans';
+    src: url('fonts/GmarketSansTTFBold.ttf') format('truetype');
+    font-weight: 700; /* Bold */
+    font-style: normal;
+}
+
 body {
-    font-family: 'GmarketSans', sans-serif; /* GmarketSans를 최우선으로 사용 */
+    font-family: 'GmarketSans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500; /* 기본 폰트 두께를 Medium으로 설정 */
     background-color: #f0f2f5;
     color: #333;
     display: flex;
@@ -17,7 +39,7 @@ body {
 #landing-page { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .landing-container { position: relative; display: inline-block; }
 .logo-image { max-width: 300px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: block; }
-#start-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: white; color: #FFC107; border: 2px solid #FFC107; padding: 6px 35px; font-size: 1.1em; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+#start-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: white; color: #FFC107; border: 2px solid #FFC107; padding: 6px 35px; font-size: 1.1em; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 #start-button:hover { background-color: #FFF8E1; color: #FFB300; border-color: #FFB300; transform: translateX(-50%) translateY(-2px); }
 
 /* --- 메인 앱 스타일 --- */
@@ -36,9 +58,9 @@ body {
 }
 .background-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('background-pattern.png'); background-repeat: repeat; opacity: 1; z-index: 1; }
 .content-layer { position: relative; z-index: 2; transition: min-height 0.3s ease; flex-grow: 1; display: flex; flex-direction: column; }
-h1 { color: #FFC107; margin-bottom: 16px; font-size: 2.4em; }
+h1 { color: #FFC107; margin-bottom: 16px; font-size: 2.4em; font-weight: 700; }
 .input-frame, .output-frame { border: 1px solid #dcdcdc; border-radius: 8px; padding: 15px; margin-bottom: 20px; background-color: #ffffff; }
-h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #FFC107; padding-bottom: 5px; display: inline-block; }
+h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #FFC107; padding-bottom: 5px; display: inline-block; font-weight: 700; }
 
 /* --- 번호 생성기 탭 스타일 --- */
 .controls-grid { 
@@ -49,7 +71,7 @@ h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; borde
     margin: 0px 0px 5px; 
 }
 .control-group { display: flex; flex-direction: row; align-items: center; gap: 5px; }
-label { font-weight: 600; margin-bottom: 0; color: #555; white-space: nowrap; }
+label { font-weight: 700; margin-bottom: 0; color: #555; white-space: nowrap; }
 select, input[type="number"] { 
     width: 100%; 
     padding: 8px; 
@@ -58,6 +80,7 @@ select, input[type="number"] {
     font-size: 0.9em; 
     background-color: #f9f9f9; 
     transition: border-color 0.3s, box-shadow 0.3s; 
+    font-family: 'GmarketSans', sans-serif;
 }
 select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107; box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2); }
 .generation-controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; margin: 0px 0px 5px; }
@@ -65,7 +88,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     width: 63px; 
     padding: 3px; 
 }
-#generate-button { background-color: #FFC107; color: #333; border: none; padding: 5px 8px; font-size: 1em; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.2s; margin-bottom: 0; }
+#generate-button { background-color: #FFC107; color: #333; border: none; padding: 5px 8px; font-size: 1em; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.2s; margin-bottom: 0; }
 #generate-button:hover { background-color: #FFB300; transform: translateY(-2px); }
 #output-text { background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 3px; min-height: 150px; text-align: left; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; overflow-x: auto; }
 .output-frame { display: flex; flex-direction: column; flex-grow: 1; }
@@ -75,12 +98,12 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .combination-result { padding: 6px 0; border-bottom: 1px solid #eee; }
 .combination-result:last-child { border-bottom: none; }
-.combination-numbers { font-weight: bold; color: #d93025; font-size: 1.0em; letter-spacing: 1px; }
+.combination-numbers { font-weight: 700; color: #d93025; font-size: 1.0em; letter-spacing: 1px; }
 .random-value { color: #1e8e3e; font-size: 0.8em; letter-spacing: -1px; }
 
 /* --- 탭 공통 스타일 --- */
 .tab-menu { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 10px; justify-content: space-around; }
-.tab-button { background: none; border: none; outline: none; font-size: 1em; font-weight: bold; color: #888; padding: 10px 5px; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.2s, border-color 0.2s; flex-grow: 1; }
+.tab-button { background: none; border: none; outline: none; font-size: 1em; font-weight: 700; color: #888; padding: 10px 5px; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.2s, border-color 0.2s; flex-grow: 1; }
 .tab-button.active { color: #FFC107; border-bottom-color: #FFC107; }
 .tab-content { 
     display: none; 
@@ -93,7 +116,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin: 0 auto;
 }
 .settings-section { background: #f8f9fa; border-radius: 15px; padding: 14px 18px; margin-bottom: 10px; }
-.stat-btn { padding: 3px 6px; font-size: 0.95em; border-radius: 8px; border: none; background: #FFC107; color: #333; cursor: pointer; margin-left: 10px; font-weight: bold; transition: background-color 0.3s; }
+.stat-btn { padding: 3px 6px; font-size: 0.95em; border-radius: 8px; border: none; background: #FFC107; color: #333; cursor: pointer; margin-left: 10px; font-weight: 700; transition: background-color 0.3s; }
 .stat-btn:hover { background: #FFB300; }
 .stat-btn:disabled { background: #ccc; cursor: not-allowed; }
 
@@ -108,7 +131,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .rank-slider::-moz-range-thumb { width: 14px; height: 14px; background: #fff; border-radius: 50%; cursor: pointer; border: 2px solid #1E5631; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
 .pause-checkbox-label { display: flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; font-size: 0.9em; }
 .pause-checkbox-label:has(input:disabled) { color: #ccc; cursor: not-allowed; }
-#speed-display { font-size: 0.9em; color: #555; white-space: nowrap; font-weight: bold; margin-left: 5px; }
+#speed-display { font-size: 0.9em; color: #555; white-space: nowrap; font-weight: 700; margin-left: 5px; }
 .lotto-stats-container { display: flex; flex-direction: column; gap: 5px; margin-bottom: 5px; }
 
 .game-area { display: flex; flex-direction: column; gap: 5px; }
@@ -130,7 +153,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     height: 100%;
     border: none;
     color: #aaa;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     background: transparent;
@@ -157,7 +180,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .stat-detail-result .partition-4 { border-color: #87ceeb; }
 .lotto-game-header {
     color: #e53935;
-    font-weight: bold;
+    font-weight: 700;
     font-size: 0.9em;
     margin-bottom: 8px;
     letter-spacing: 1px;
@@ -172,13 +195,13 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     gap: 4px;
 }
 #probDisplayA, #probDisplayB {
-    font-weight: normal;
+    font-weight: 500;
     font-size: 0.7em;
 }
 #probDisplayA strong, #probDisplayB strong {
-    font-weight: bold;
+    font-weight: 700;
 }
-.lotto-auto-btn { margin-left: 4px; padding: 1px; border-radius: 6px; border: 1px solid #e57373; background: #fff3f3; color: #e53935; font-size: 0.7em; font-weight: bold; cursor: pointer; transition: background 0.2s, color 0.2s; }
+.lotto-auto-btn { margin-left: 4px; padding: 1px; border-radius: 6px; border: 1px solid #e57373; background: #fff3f3; color: #e53935; font-size: 0.7em; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s; }
 .lotto-auto-btn:hover { background: #e53935; color: #fff; }
 .lotto-grid-wrapper { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
 .lotto-game-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 1px; width: 100%; }
@@ -202,7 +225,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     background: #fff3f3;
     color: #e53935;
     border-radius: 50%;
-    font-weight: bold;
+    font-weight: 700;
     font-size: 0.55em;
     border: 2px solid transparent;
     transition: background 0.2s, color 0.2s, border 0.2s;
@@ -223,14 +246,14 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     cursor: not-allowed;
 }
 
-#auto-gen-counter { font-size: 0.9em; color: #333; margin-left: 8px; font-weight: bold; display: none; background-color: #e9ecef; padding: 4px 8px; border-radius: 6px; }
+#auto-gen-counter { font-size: 0.9em; color: #333; margin-left: 8px; font-weight: 700; display: none; background-color: #e9ecef; padding: 4px 8px; border-radius: 6px; }
 .non-winning-num { font-size: 0.8em; color: #aaa; }
 
 /* --- 고급 설정 탭 스타일 --- */
 .adv-settings-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: left; }
 .setting-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
 .setting-item:last-child { border-bottom: none; }
-.setting-item label { font-weight: 600; color: #333; }
+.setting-item label { font-weight: 700; color: #333; }
 .setting-item-inline { flex-wrap: nowrap; }
 .setting-item-inline .adv-select { flex-shrink: 0; }
 .adv-checkbox { width: 20px; height: 20px; cursor: pointer; }
@@ -247,7 +270,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     transition: background-color 0.3s, color 0.3s;
     flex: 1;
     text-align: center;
-    font-weight: bold;
+    font-weight: 700;
     color: #888;
 }
 
@@ -269,7 +292,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     color: #424242;
     padding: 8px 15px;
     font-size: 1em;
-    font-weight: 600;
+    font-weight: 700;
     border: 1px solid #ccc;
     border-radius: 6px;
     cursor: pointer;
@@ -322,7 +345,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     gap: 10px;
 }
 .nickname-wrapper { display: flex; align-items: center; gap: 8px; width: 100%; }
-.nickname-wrapper label { font-weight: 600; }
+.nickname-wrapper label { font-weight: 700; }
 #nickname-input { width: 30%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
 #nickname-input:read-only { background-color: #e9ecef; cursor: not-allowed; }
 #community-text { width: 100%; resize: vertical; box-sizing: border-box; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
@@ -336,7 +359,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .image-upload-input { display: none; }
 .image-name { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #char-counter { text-align: right; color: #888; }
-#post-button { background-color: #FFC107; color: #333; border: none; padding: 6px 20px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; margin-left: auto; }
+#post-button { background-color: #FFC107; color: #333; border: none; padding: 6px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background-color 0.3s; margin-left: auto; }
 #post-button:hover { background-color: #FFB300; }
 #post-button:disabled { background-color: #ccc; cursor: not-allowed; }
 #community-feed {
@@ -421,7 +444,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     border-radius: 4px;
     padding: 1px 4px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
     transition: background-color 0.2s, color 0.2s;
     font-size: 0.7em;
 }
@@ -477,7 +500,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     justify-content: center;
     align-items: center;
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     border: 1px solid #ccc;
 }
@@ -508,7 +531,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     text-align: center;
     font-size: 12px;
     line-height: 16px;
-    font-weight: bold;
+    font-weight: 700;
     cursor: pointer;
     margin-left: 4px;
 }
