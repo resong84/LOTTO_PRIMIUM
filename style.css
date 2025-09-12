@@ -36,11 +36,13 @@ body {
 }
 
 /* --- 랜딩 페이지 스타일 --- */
-#landing-page { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+#landing-page { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; width: 100%; height: 100vh; }
 .landing-container { position: relative; display: inline-block; }
 .logo-image { max-width: 300px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: block; }
 #start-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: white; color: #FFC107; border: 2px solid #FFC107; padding: 6px 35px; font-size: 1.1em; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 #start-button:hover { background-color: #FFF8E1; color: #FFB300; border-color: #FFB300; transform: translateX(-50%) translateY(-2px); }
+#admin-button { position: absolute; top: 15px; right: 15px; background: #fff; border: 1px solid #ccc; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; }
+#admin-button:hover { background: #f0f0f0; transform: scale(1.1); }
 
 /* --- 메인 앱 스타일 --- */
 .container {
@@ -90,32 +92,134 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 #generate-button { background-color: #FFC107; color: #333; border: none; padding: 5px 8px; font-size: 1em; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.2s; margin-bottom: 0; }
 #generate-button:hover { background-color: #FFB300; transform: translateY(-2px); }
-#output-text { background-color: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 3px; min-height: 150px; text-align: left; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; word-break: break-word; line-height: 1.5; overflow-x: auto; }
+#generate-button:disabled { background-color: #ccc; cursor: not-allowed; transform: none; }
+
+
+/* '번호 생성기' 탭의 출력 UI 수정 */
+#tab1 .output-frame {
+    padding: 4px;
+}
+#output-text {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 4px;
+    min-height: 150px;
+    display: block;
+}
+.generated-combination-row {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    column-gap: 10px;
+    justify-content: flex-start;
+}
+.generated-combination-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+.generated-combination-container .combination-header {
+    font-weight: 700;
+    text-align: left;
+    font-size: 1.1em;
+    color: #333;
+}
+/* '번호 생성기' 탭에서 재사용되는 확률 확인 UI 스타일 */
+#tab1 .prob-output-frame {
+    display: flex;
+    flex-grow: 1;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    background-color: transparent;
+}
+#tab1 .prob-output-text {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
+    width: 100%;
+    justify-content: center;
+    padding: 2px;
+}
+#tab1 .prob-result-item {
+    flex: 1;
+    padding: 2px;
+    gap: 4px;
+    font-size: 0.8em;
+}
+#tab1 .prob-result-item .prob-num {
+    font-size: 1.3em;
+}
+#tab1 .prob-result-item .prob-percent {
+    font-size: 0.75em;
+}
+#tab1 .prob-result-item .prob-class {
+    font-size: 0.75em;
+    padding: 3px 5px;
+}
+
+
 .output-frame { display: flex; flex-direction: column; flex-grow: 1; }
 .output-frame h2 {
     margin: 0px 0px 5px; 
     padding: 0px 0px 1px; 
 }
-.combination-result { padding: 6px 0; border-bottom: 1px solid #eee; }
-.combination-result:last-child { border-bottom: none; }
-.combination-numbers { font-weight: 700; color: #d93025; font-size: 1.0em; letter-spacing: 1px; }
-.random-value { color: #1e8e3e; font-size: 0.8em; letter-spacing: -1px; }
 
-/* --- 탭 공통 스타일 --- */
-.tab-menu { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 10px; justify-content: space-around; }
-.tab-button { background: none; border: none; outline: none; font-size: 1em; font-weight: 700; color: #888; padding: 10px 5px; cursor: pointer; border-bottom: 3px solid transparent; transition: color 0.2s, border-color 0.2s; flex-grow: 1; }
-.tab-button.active { color: #FFC107; border-bottom-color: #FFC107; }
+/* --- 탭 공통 스타일 (책갈피 디자인) --- */
+.tab-menu {
+    display: flex;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 10;
+}
+.tab-button {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 0.8em;
+    font-weight: 700;
+    color: #888;
+    padding: 10px 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-grow: 1;
+    border-radius: 8px 8px 0 0;
+    margin-right: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.tab-button:last-child {
+    margin-right: 0;
+}
+.tab-button.active {
+    background: transparent;
+    border: none;
+    color: #FFC107;
+    transform: scale(1.05) translateY(1px);
+}
 .tab-content { 
     display: none; 
     flex-direction: column;
     flex-grow: 1; 
+    border: none;
+    box-shadow: none; /* 그림자 제거 */
+    border-radius: 0 8px 8px 8px;
+    padding: 15px;
+    background-color: transparent; /* 모든 탭 배경 투명하게 */
 }
 .tab-content.active { 
     display: flex;
-    width: 90%;
-    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
 }
-.settings-section { background: #f8f9fa; border-radius: 15px; padding: 14px 18px; margin-bottom: 10px; }
+
+.settings-section { background: #f8f9fa; border-radius: 15px; padding: 8px 10px; margin-bottom: 10px; }
 .stat-btn { padding: 3px 6px; font-size: 0.95em; border-radius: 8px; border: none; background: #FFC107; color: #333; cursor: pointer; margin-left: 10px; font-weight: 700; transition: background-color 0.3s; }
 .stat-btn:hover { background: #FFB300; }
 .stat-btn:disabled { background: #ccc; cursor: not-allowed; }
@@ -131,20 +235,23 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .rank-slider::-moz-range-thumb { width: 14px; height: 14px; background: #fff; border-radius: 50%; cursor: pointer; border: 2px solid #1E5631; box-shadow: 0 0 5px rgba(0,0,0,0.2); }
 .pause-checkbox-label { display: flex; align-items: center; gap: 5px; cursor: pointer; white-space: nowrap; font-size: 0.9em; }
 .pause-checkbox-label:has(input:disabled) { color: #ccc; cursor: not-allowed; }
-#speed-display { font-size: 0.9em; color: #555; white-space: nowrap; font-weight: 700; margin-left: 5px; }
 .lotto-stats-container { display: flex; flex-direction: column; gap: 5px; margin-bottom: 5px; }
 
 .game-area { display: flex; flex-direction: column; gap: 5px; }
 .game-boards-container { display: flex; flex-direction: column; gap: 5px; align-items: center; }
 .result-windows-container { display: flex; flex-direction: column; gap: 5px; align-items: center; }
-.lotto-game, .lotto-game-placeholder { min-width: 0; width: 250px; height: 75px; }
-.lotto-game { background: #fff; border: 2px solid #e53935; border-radius: 16px; box-shadow: 0 2px 8px rgba(229,57,53,0.08); padding: 8px; display: flex; flex-direction: column; align-items: center; }
+.lotto-game, .lotto-game-placeholder { min-width: 0; width: 312px; height: 75px; }
+.lotto-game { background: #fff; border: 2px solid #e53935; border-radius: 16px; box-shadow: 0 2px 8px rgba(229,57,53,0.08); padding: 4px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s, border-color 0.2s; }
+.lotto-game.selected {
+    border-color: #c62828;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
+}
 
 .lotto-game-placeholder {
     display: flex;
     border: 2px dashed #ccc;
     border-radius: 16px;
-    padding: 8px;
+    padding: 4px;
     background: #fff;
     box-shadow: 0 2px 8px rgba(229,57,53,0.08);
 }
@@ -169,7 +276,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     color: #888;
 }
 
-.stat-detail-result { width: 250px; height: 100px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 5px; text-align: left; background: #fff; font-size: 0.85em; overflow-y: auto; }
+.stat-detail-result { width: 312px; height: 100px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 5px; text-align: left; background: #fff; font-size: 0.85em; overflow-y: auto; }
 
 .stat-detail-result ul { list-style-type: none; padding-left: 0; margin: 0; }
 .stat-detail-result li { background: #f9f9f9; padding: 2px 6px; margin-bottom: 3px; border-radius: 4px; border-left: 3px solid; white-space: nowrap; }
@@ -203,9 +310,23 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .lotto-auto-btn { margin-left: 4px; padding: 1px; border-radius: 6px; border: 1px solid #e57373; background: #fff3f3; color: #e53935; font-size: 0.7em; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s; }
 .lotto-auto-btn:hover { background: #e53935; color: #fff; }
+.lotto-prob-check-btn { 
+    margin-left: 4px; 
+    padding: 1px; 
+    border-radius: 6px; 
+    border: 1px solid #e57373; 
+    background: #fff3f3; 
+    color: #e53935; 
+    font-size: 0.7em; 
+    font-weight: 700; 
+    cursor: pointer; 
+    transition: background 0.2s, color 0.2s; 
+    display: none; /* Initially hidden */
+}
+.lotto-prob-check-btn:hover { background: #e53935; color: #fff; }
 .lotto-grid-wrapper { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
-.lotto-game-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 1px; width: 100%; }
-#lottoGameA_row1, #lottoGameB_row1, #lottoGameA_row2, #lottoGameB_row2 { margin-bottom: 2px; }
+.lotto-game-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; width: 100%; }
+#lottoGameA_row1, #lottoGameB_row1, #lottoGameA_row2, #lottoGameB_row2, #lottoGameProb_row1, #lottoGameProb_row2 { margin-bottom: 4px; }
 
 .lotto-num {
     display: flex;
@@ -220,40 +341,52 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 11px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
     background: #fff3f3;
     color: #e53935;
-    border-radius: 50%;
+    border-radius: 40%;
     font-weight: 700;
-    font-size: 0.55em;
-    border: 2px solid transparent;
+    font-size: 0.6em;
+    border: 1px solid transparent;
     transition: background 0.2s, color 0.2s, border 0.2s;
 }
 
 .lotto-num.selected span {
     background: #e53935;
     color: #fff;
-    border: 2px inset #b71c1c;
+    border: 1px inset #b71c1c;
 }
 
 .lotto-num.disabled span {
-    background: #f8bbd0;
-    color: #bbb;
+    background: #fff;
+    color: #fff;
 }
 
 .lotto-num.disabled {
     cursor: not-allowed;
 }
 
-#auto-gen-counter { font-size: 0.9em; color: #333; margin-left: 8px; font-weight: 700; display: none; background-color: #e9ecef; padding: 4px 8px; border-radius: 6px; }
+.stat-buttons-container { display: flex; justify-content: center; align-items: center; text-align: center; }
+#auto-gen-counter {
+    display: inline-block;
+    padding: 2px 3px;
+    font-size: 0.85em;
+    border-radius: 8px;
+    border: none;
+    background: #f0d78e;
+    color: #333;
+    margin-left: 12px;
+    font-weight: 700;
+    min-width: 70px;
+    text-align: center;
+    box-sizing: border-box;
+}
 .non-winning-num { font-size: 0.8em; color: #aaa; }
 
 /* --- 고급 설정 탭 스타일 --- */
-.adv-settings-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; text-align: left; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-.setting-item:last-child { border-bottom: none; }
-.setting-item label { font-weight: 700; color: #333; }
+.adv-settings-container { display: flex; flex-direction: column; gap: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .setting-item-inline { flex-wrap: nowrap; }
 .setting-item-inline .adv-select { flex-shrink: 0; }
 .adv-checkbox { width: 20px; height: 20px; cursor: pointer; }
@@ -280,14 +413,18 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     color: #333;
 }
 
-/* --- 사용 설명 버튼/드롭다운 스타일 --- */
-.setting-item-full-width {
-    flex-direction: column;
-    align-items: stretch;
+/* --- 고급 설정 드롭다운 스타일 --- */
+.adv-dropdown-container {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+.adv-dropdown-container:last-child {
     border-bottom: none;
     padding-bottom: 0;
+    margin-bottom: 0;
 }
-.user-guide-button {
+.adv-dropdown-button {
     background-color: #fff;
     color: #424242;
     padding: 8px 15px;
@@ -299,41 +436,49 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     width: 100%;
     text-align: left;
     transition: background-color 0.3s;
+    margin-bottom: 10px;
 }
-.user-guide-button:hover {
+.adv-dropdown-button:hover {
     background-color: #f8f9fa;
 }
-.user-guide-content {
+.adv-dropdown-content {
     display: none;
     padding: 15px;
     background: #fff;
     border: 1px solid #e0e0e0;
-    border-top: none;
-    border-radius: 0 0 8px 8px;
-    text-align: left;
-    font-size: 0.7em;
+    border-radius: 8px;
+    font-size: 0.9em;
     color: #555;
     line-height: 1.6;
     width: 100%; 
     box-sizing: border-box;
+    display: none;
+    flex-direction: column;
+    gap: 15px;
 }
-.user-guide-content.show {
-    display: block;
+.adv-dropdown-content.show {
+    display: flex;
 }
-.user-guide-content ul {
+.adv-dropdown-content ul {
     padding-left: 20px;
     margin: 0;
 }
-.user-guide-content li strong {
+.adv-dropdown-content li strong {
     color: #333;
 }
+/* 드롭다운 내부의 setting-item은 border가 없도록 함 */
+.adv-dropdown-content .setting-item {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 
 /* --- 커뮤니티 탭 스타일 --- */
-#tab4 .input-frame,
-#tab4 .output-frame {
+#tab5 .input-frame,
+#tab5 .output-frame {
     padding: 5px;
 }
-#tab4 .output-frame {
+#tab5 .output-frame {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -505,12 +650,99 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     border: 1px solid #ccc;
 }
 
+/* --- 확률 확인 탭 스타일 --- */
+#tab3.active {
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+}
+#tab3 .lotto-game-header {
+    justify-content: center;
+}
+.prob-title {
+    font-weight: 500; /* 보통 굵기 */
+    font-size: 1.1em;
+    color: #e53935; /* 빨간색 */
+    text-align: center;
+}
+.prob-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+.prob-output-frame {
+    display: none;
+    width: auto; /* 내용에 맞게 너비 자동 조절 */
+    max-width: 100%;
+    background-color: #ffffff; /* 흰색 배경 */
+    border: none;
+    padding: 6px; /* 내부 여백 */
+    margin-top: 6px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px; /* 둥근 모서리 */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* 그림자 효과 */
+}
+#prob-output-text {
+    display: flex;
+    flex-wrap: nowrap; /* 줄바꿈 방지 */
+    gap: 10px;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+}
+.prob-result-item {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.85em;
+    align-items: center;
+    justify-content: space-around;
+    transition: background-color 0.3s;
+    flex-basis: 50px; /* 기본 너비 설정 */
+    flex-grow: 1; /* 공간이 남으면 늘어남 */
+}
+.prob-result-item.high { 
+    background-image: linear-gradient(to bottom right, #ffffff, #f28b82); 
+}
+.prob-result-item.low { 
+    background-image: linear-gradient(to bottom right, #ffffff, #a8c0ff); 
+}
+.prob-result-item.random { 
+    background-image: linear-gradient(to bottom right, #ffffff, #b7e1cd); 
+}
+
+.prob-result-item * {
+    color: #333 !important;
+}
+
+.prob-result-item .prob-num {
+    font-weight: 700;
+    font-size: 1.4em;
+}
+.prob-result-item .prob-percent {
+    font-weight: 700;
+    font-size: 0.9em;
+}
+.prob-result-item .prob-class {
+    font-size: 0.8em;
+    font-weight: 700;
+    padding: 4px 5px;
+    border-radius: 4px;
+    width: 80%;
+    background-color: rgba(255, 255, 255, 0.829);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
 
 /* --- 미디어 쿼리 (반응형) --- */
 @media (max-width: 640px) {
     .container { padding: 10px; }
     h1 { font-size: 2em; } 
-    .tab-button { font-size: 0.9em; padding: 10px 2px; }
+    .tab-button { font-size: 0.75em; padding: 10px 1px; }
     .setting-item { flex-direction: column; align-items: flex-start; gap: 10px; }
     .setting-item-inline { flex-direction: row; align-items: center; }
 }

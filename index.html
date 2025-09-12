@@ -13,6 +13,7 @@
             <img src="googleplayimage.png" alt="Lotto 6/45 Logo" class="logo-image">
             <button id="start-button">시작</button>
         </div>
+        <button id="admin-button">⚙️</button>
     </div>
 
     <!-- 메인 앱 (처음에는 숨김) -->
@@ -25,8 +26,9 @@
                 <div class="tab-menu">
                     <button class="tab-button active" onclick="showTab(1)">번호 생성기</button>
                     <button class="tab-button" onclick="showTab(2)">당첨 통계 조회</button>
-                    <button class="tab-button" onclick="showTab(3)">고급 설정</button>
-                    <button class="tab-button" onclick="showTab(4)">커뮤니티</button>
+                    <button class="tab-button" onclick="showTab(3)">확률 확인</button>
+                    <button class="tab-button" onclick="showTab(4)">고급 설정</button>
+                    <button class="tab-button" onclick="showTab(5)">커뮤니티</button>
                 </div>
 
                 <!-- 탭 1: 로또 번호 생성기 -->
@@ -44,7 +46,7 @@
                         <div class="generation-controls">
                             <label for="num-combinations">생성 조합 수 (1~5):</label>
                             <input type="number" id="num-combinations" value="1" min="1" max="5">
-                            <button id="generate-button">생성</button>
+                            <button id="generate-button" disabled>생성</button>
                         </div>
                     </div>
                     <div class="output-frame"><h2>--- 생성된 조합 ---</h2><div id="output-text"></div></div>
@@ -69,7 +71,6 @@
                                     <input type="checkbox" id="auto-generate-checkbox">
                                     <span>자동 생성</span>
                                 </label>
-                                <span id="speed-display"></span>
                             </div>
 
                             <div class="game-area">
@@ -107,10 +108,10 @@
                                     </div>
                                 </div>
 
-                                <div style="text-align:center;">
+                                <div class="stat-buttons-container">
                                     <button class="stat-btn" id="resetBtn" onclick="resetLottoStats()" style="margin-left:0;">초기화</button>
                                     <button class="stat-btn" id="autoSelectAllBtn" onclick="autoSelectAll()" style="margin-left:12px;">랜덤 번호 조합</button>
-                                    <span id="auto-gen-counter"></span>
+                                    <span id="auto-gen-counter">총 0회</span>
                                 </div>
 
                                 <div class="result-windows-container">
@@ -121,44 +122,78 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- 탭 3: 고급 설정 -->
+                
+                <!-- 탭 3: 확률 확인 -->
                 <div id="tab3" class="tab-content">
+                    <div class="lotto-game selected" data-game="Prob">
+                        <div class="lotto-game-header">
+                            <span class="prob-title">번호 선택</span>
+                        </div>
+                        <div class="lotto-grid-wrapper">
+                            <div class="lotto-game-grid" id="lottoGameProb_row1"></div>
+                            <div class="lotto-game-grid" id="lottoGameProb_row2"></div>
+                            <div class="lotto-game-grid" id="lottoGameProb_row3"></div>
+                        </div>
+                    </div>
+                    <div class="prob-controls">
+                        <button class="stat-btn" id="resetProbBtn">초기화</button>
+                        <button class="stat-btn" id="viewProbBtn" disabled>확률 보기</button>
+                    </div>
+                    <div class="prob-output-frame">
+                        <div id="prob-output-text"></div>
+                    </div>
+                </div>
+
+                <!-- 탭 4: 고급 설정 -->
+                <div id="tab4" class="tab-content">
                     <div class="adv-settings-container">
-                        <div class="setting-item">
-                            <label for="exclude-winners-checkbox">역대 1등 당첨 번호 제외하기</label>
-                            <input type="checkbox" id="exclude-winners-checkbox" class="adv-checkbox">
-                        </div>
-                        <div class="setting-item setting-item-inline">
-                            <label for="min-appearance-select">'랜덤' 선택 시 빈도 설정</label>
-                            <select id="min-appearance-select" class="adv-select">
-                                <option value="0">0회</option>
-                                <option value="1">1회</option>
-                                <option value="2">2회</option>
-                                <option value="3">3회</option>
-                                <option value="4">4회</option>
-                                <option value="5">5회</option>
-                                <option value="6">6회</option>
-                                <option value="7">7회</option>
-                                <option value="8">8회</option>
-                                <option value="9">9회</option>
-                                <option value="10">10회</option>
-                                <option value="11">11회</option>
-                                <option value="12">12회</option>
-                                <option value="13">13회</option>
-                                <option value="14">14회</option>
-                                <option value="15">15회</option>
-                            </select>
-                        </div>
-                        <div class="setting-item">
-                            <label>자동 생성 속도</label>
-                            <div class="adv-radio-group">
-                                <input type="radio" id="speed-x1" name="speed-control" value="1000" checked><label for="speed-x1">x1</label>
-                                <input type="radio" id="speed-x3" name="speed-control" value="333"><label for="speed-x3">x3</label>
-                                <input type="radio" id="speed-x5" name="speed-control" value="200"><label for="speed-x5">x5</label>
-                                <input type="radio" id="speed-x10" name="speed-control" value="100"><label for="speed-x10">x10</label>
+                        
+                        <div class="adv-dropdown-container">
+                            <button class="adv-dropdown-button" data-target="generator-settings-content">번호 생성기 ▼</button>
+                            <div id="generator-settings-content" class="adv-dropdown-content">
+                                <div class="setting-item">
+                                    <label for="exclude-winners-checkbox">역대 1등 당첨 번호 제외하기</label>
+                                    <input type="checkbox" id="exclude-winners-checkbox" class="adv-checkbox">
+                                </div>
+                                <div class="setting-item setting-item-inline">
+                                    <label for="min-appearance-select">'랜덤' 선택 시 빈도 설정</label>
+                                    <select id="min-appearance-select" class="adv-select">
+                                        <option value="0">0회</option>
+                                        <option value="1">1회</option>
+                                        <option value="2">2회</option>
+                                        <option value="3">3회</option>
+                                        <option value="4">4회</option>
+                                        <option value="5">5회</option>
+                                        <option value="6">6회</option>
+                                        <option value="7">7회</option>
+                                        <option value="8">8회</option>
+                                        <option value="9">9회</option>
+                                        <option value="10">10회</option>
+                                        <option value="11">11회</option>
+                                        <option value="12">12회</option>
+                                        <option value="13">13회</option>
+                                        <option value="14">14회</option>
+                                        <option value="15">15회</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
+
+                        <div class="adv-dropdown-container">
+                            <button class="adv-dropdown-button" data-target="stats-settings-content">당첨 통계 조회 ▼</button>
+                            <div id="stats-settings-content" class="adv-dropdown-content">
+                                <div class="setting-item">
+                                    <label>자동 생성 속도</label>
+                                    <div class="adv-radio-group">
+                                        <input type="radio" id="speed-x1" name="speed-control" value="1000" checked><label for="speed-x1">x1</label>
+                                        <input type="radio" id="speed-x2" name="speed-control" value="500"><label for="speed-x2">x2</label>
+                                        <input type="radio" id="speed-x10" name="speed-control" value="100"><label for="speed-x10">x10</label>
+                                        <input type="radio" id="speed-x20" name="speed-control" value="50"><label for="speed-x20">x20</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="setting-item">
                             <label>자동 생성 시 사운드 ON/OFF</label>
                             <div class="adv-radio-group">
@@ -166,9 +201,10 @@
                                 <input type="radio" id="sound-off" name="sound-control" value="0"><label for="sound-off">OFF</label>
                             </div>
                         </div>
-                        <div class="setting-item setting-item-full-width">
-                            <button id="user-guide-button" class="user-guide-button">사용 설명 ▼</button>
-                            <div id="user-guide-content" class="user-guide-content">
+
+                        <div class="adv-dropdown-container">
+                            <button class="adv-dropdown-button" data-target="user-guide-content">사용 설명 ▼</button>
+                            <div id="user-guide-content" class="adv-dropdown-content">
                                 <ul>
                                     <li><strong>번호 생성기:</strong> 통계 기반 번호를 생성합니다.</li>
                                     <li><strong>통계 조회:</strong> 과거 당첨 내역과 내 번호를 비교합니다.</li>
@@ -181,8 +217,8 @@
                     </div>
                 </div>
 
-                <!-- 탭 4: 커뮤니티 -->
-                <div id="tab4" class="tab-content">
+                <!-- 탭 5: 커뮤니티 -->
+                <div id="tab5" class="tab-content">
                     <div class="input-frame">
                         <h2>커뮤니티 글쓰기</h2>
                         <div class="community-post-box">
@@ -234,7 +270,6 @@
 
     <audio id="winSound" src="win-sound.mp3" preload="auto"></audio>
 
-    <script src="lottoHistory.js"></script> 
     <script src="script.js"></script>
 </body>
 </html>

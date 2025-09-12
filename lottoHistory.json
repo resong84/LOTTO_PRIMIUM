@@ -1,4 +1,4 @@
-const lottoHistory = [
+[
   {
     "draw": 1,
     "numbers": [
@@ -14123,4 +14123,4 @@ const lottoHistory = [
     ],
     "bonus": 21
   }
-];
+]
