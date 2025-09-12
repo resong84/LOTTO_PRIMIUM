@@ -44,24 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Data Loading and Parsing ---
     async function loadData() {
         try {
-            const response = await fetch('lotto_data.txt');
+            const response = await fetch('lotto_data.json');
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const dataText = await response.text();
+            const jsonData = await response.json();
             
-            // 1. 번호 생성 로직을 위한 데이터 구조 생성 (probDf)
-            probDf = parseAndPrepareData(dataText);
+            probDf = {
+                data: jsonData,
+                columns: jsonData.length > 0 ? Object.keys(jsonData[0]) : [],
+                includes: function(colName) { return this.columns.includes(colName); },
+                filterNonZero: function(columnName) { return this.data.filter(row => row[columnName] > 0); }
+            };
             
-            // 2. 확률 조회 로직을 위한 데이터 구조 생성 (lottoData)
             lottoData = createLottoDataObject(probDf);
 
-            // 데이터 로드 완료 후 버튼 활성화
             document.getElementById('generate-button').disabled = false;
             document.getElementById('viewProbBtn').disabled = false;
 
         } catch (e) {
-            alert(`'lotto_data.txt' 파일을 불러오는 데 실패했습니다: ${e.message}`);
+            alert(`'lotto_data.json' 파일을 불러오는 데 실패했습니다: ${e.message}`);
         }
     }
     
@@ -95,31 +97,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn(`'lotto_data_1st_number.txt' 파일을 불러오는 데 실패했습니다: ${e.message}. '1등 번호 제외' 기능이 작동하지 않을 수 있습니다.`);
         }
     }
-    
-    async function loadLottoHistory() {
-        try {
-            const response = await fetch('lottoHistory.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            lottoHistory = await response.json();
-        } catch (e) {
-            console.error("'lottoHistory.json' 파일을 불러오는 데 실패했습니다:", e);
-            alert('과거 당첨 내역 데이터를 불러오는 데 실패했습니다. 통계 조회 기능이 작동하지 않을 수 있습니다.');
-        }
-    }
 
-    // 초기 데이터 로드
     loadData();
     loadFirstPlaceData();
-    loadLottoHistory();
 
-    // --- UI 렌더링 및 탭 초기화 ---
     renderLottoPaper();
     renderProbPaper();
     showTab(1);
 
-    // --- 이벤트 리스너 바인딩 ---
     generateButton.addEventListener('click', generateCombinations);
     
     const rankSlider = document.getElementById('rank-slider');
@@ -219,10 +204,48 @@ document.addEventListener('DOMContentLoaded', () => {
     window.openImagePopup = openImagePopup;
 });
 
+// ==================================================================
+// ===== 데이터 처리 및 전역 함수 =====
+// ==================================================================
 
-// ==================================================================
-// ===== 데이터 처리 함수 =====
-// ==================================================================
+// [수정] loadLottoHistory 함수를 DOMContentLoaded 밖으로 이동
+async function loadLottoHistory() {
+    try {
+        const response = await fetch('lottoHistory_optimized.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        lottoHistory = await response.json();
+    } catch (e) {
+        console.error("'lottoHistory_optimized.json' 파일을 불러오는 데 실패했습니다:", e);
+        alert('과거 당첨 내역 데이터를 불러오는 데 실패했습니다. 통계 조회 기능이 작동하지 않을 수 있습니다.');
+    }
+}
+
+// [수정] showTab 함수를 DOMContentLoaded 밖으로 이동
+async function showTab(tabIdx) {
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab${tabIdx}`).classList.add('active');
+    document.querySelector(`.tab-button:nth-child(${tabIdx})`).classList.add('active');
+
+    if (tabIdx === 2 && lottoHistory.length === 0) {
+        const resultContainer = document.getElementById('statDetailResultA');
+        resultContainer.innerHTML = '<div style="color:#888;text-align:center;padding-top:25px;">과거 당첨 내역을 불러오는 중...</div>';
+        
+        await loadLottoHistory();
+        
+        if (selectedNums.A.length === 6 || selectedNums.B.length === 6) {
+            checkLottoStats();
+        } else {
+            resultContainer.innerHTML = '';
+        }
+    }
+
+    if (tabIdx === 5) {
+        await loadPosts();
+    }
+}
 
 function createLottoDataObject(probDf) {
     const newData = {};
@@ -239,53 +262,6 @@ function createLottoDataObject(probDf) {
         }
     });
     return newData;
-}
-
-function parseAndPrepareData(dataText) {
-    const lines = dataText.trim().split('\n');
-    if (lines.length < 2) throw new Error("입력된 데이터가 충분하지 않습니다.");
-    
-    const headerLine = lines[0];
-    const dataLines = lines.slice(1);
-    const rawHeaders = headerLine.split('\t').filter(h => h);
-    const processedHeaders = rawHeaders.slice(1); 
-    const columns = ["번호"]; 
-
-    for (let i = 0; i < processedHeaders.length; i += 2) {
-        if (i + 1 < processedHeaders.length && processedHeaders[i+1].trim().toLowerCase() === '확률') {
-            const baseName = processedHeaders[i].trim();
-            columns.push(baseName); 
-            columns.push(`${baseName}확률`); 
-        } else {
-            throw new Error(`헤더 형식이 '칸 확률' 패턴과 다릅니다.`);
-        }
-    }
-
-    const data = [];
-    for (const line of dataLines) {
-        const parts = line.split('\t').filter(p => p);
-        if (parts.length === 0) continue;
-        const rowData = {};
-        rowData["번호"] = parseInt(parts[0]);
-        let colIndexInColumns = 1; 
-        for (let i = 1; i < parts.length; i += 2) {
-            const count = parseInt(parts[i]);
-            const percentage = parseFloat(parts[i + 1].replace('%', ''));
-            const baseColName = columns[colIndexInColumns];
-            const probColName = columns[colIndexInColumns + 1];
-            rowData[baseColName] = count;
-            rowData[probColName] = percentage;
-            colIndexInColumns += 2;
-        }
-        data.push(rowData);
-    }
-
-    return {
-        columns: columns,
-        data: data,
-        includes: function(colName) { return this.columns.includes(colName); },
-        filterNonZero: function(columnName) { return this.data.filter(row => row[columnName] > 0); }
-    };
 }
 
 
@@ -460,19 +436,8 @@ function get_random_number_from_column(prob_df, column_name, selection_type, exc
 
 
 // ==================================================================
-// ===== 탭, 통계, 커뮤니티 등 전역 함수들 =====
+// ===== 통계 및 UI 렌더링 함수 =====
 // ==================================================================
-
-function showTab(tabIdx) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`tab${tabIdx}`).classList.add('active');
-    document.querySelector(`.tab-button:nth-child(${tabIdx})`).classList.add('active');
-
-    if (tabIdx === 5) {
-        loadPosts();
-    }
-}
 
 function renderLottoPaper() {
     ['A','B'].forEach(game => {
@@ -656,28 +621,31 @@ function getCombinationProbability(numbers) {
 function checkLottoStats() {
     isWinFound = false;
     const maxRank = parseInt(document.getElementById('rank-slider').value);
-    if (lottoHistory.length === 0) return;
+    if (lottoHistory.length === 0) {
+        return;
+    }
 
     ['A','B'].forEach(game => {
         const nums = selectedNums[game];
         const resultContainer = document.getElementById(`statDetailResult${game}`);
         const probDisplay = document.getElementById(`probDisplay${game}`);
-        let gameHtml = '';
-
+        
         if (nums.length === 6) {
             const prob = getCombinationProbability(nums);
             probDisplay.innerHTML = `<strong>조합 확률:</strong> ${prob}%`;
             let first = [], second = [], third = [], fourth = [];
             
-            for (let i = 0; i < lottoHistory.length; i++) {
-                const win = lottoHistory[i].numbers;
-                const bonus = lottoHistory[i].bonus;
+            for (const historyEntry of lottoHistory) {
+                const draw = historyEntry[0];
+                const bonus = historyEntry[1];
+                const win = historyEntry.slice(2);
+                
                 const match = nums.filter(n => win.includes(n)).length;
 
-                if (match === 6) first.push({draw: lottoHistory[i].draw, numbers: win});
-                else if (match === 5 && nums.includes(bonus)) second.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                else if (match === 5) third.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
-                else if (match === 4) fourth.push({draw: lottoHistory[i].draw, numbers: win, bonus: bonus});
+                if (match === 6) first.push({draw, numbers: win});
+                else if (match === 5 && nums.includes(bonus)) second.push({draw, numbers: win, bonus});
+                else if (match === 5) third.push({draw, numbers: win, bonus});
+                else if (match === 4) fourth.push({draw, numbers: win, bonus});
             }
 
             function makePartition(title, arr, rank) {
@@ -855,7 +823,6 @@ async function uploadImage(fileInput) {
     formData.append('image', file);
 
     try {
-        // Assuming the worker has an '/upload' endpoint for images
         const response = await fetch(`${WORKER_URL}/upload`, {
             method: 'POST',
             body: formData,
@@ -865,7 +832,6 @@ async function uploadImage(fileInput) {
             throw new Error(`Image upload failed with status ${response.status}: ${errorText}`);
         }
         const result = await response.json();
-        // Assuming the worker returns a JSON with the URL, e.g., { "url": "..." }
         return result.url || null;
     } catch (e) {
         console.error('Image upload error:', e);
