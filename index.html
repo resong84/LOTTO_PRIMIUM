@@ -26,7 +26,7 @@
                 <div class="tab-menu">
                     <button class="tab-button active" onclick="showTab(1)">번호 생성기</button>
                     <button class="tab-button" onclick="showTab(2)">당첨 통계 조회</button>
-                    <button class="tab-button" onclick="showTab(3)">확률 확인</button>
+                    <button class="tab-button" onclick="showTab(3)">번호 분석기</button>
                     <button class="tab-button" onclick="showTab(4)">고급 설정</button>
                     <button class="tab-button" onclick="showTab(5)">커뮤니티</button>
                 </div>
@@ -123,12 +123,12 @@
                     </div>
                 </div>
                 
-                <!-- 탭 3: 확률 확인 -->
+                <!-- 탭 3: 번호 분석기 -->
                 <div id="tab3" class="tab-content">
+                    <!-- [수정] 신규 타이틀 추가 -->
+                    <h2>번호 확률 확인</h2>
                     <div class="lotto-game selected" data-game="Prob">
-                        <div class="lotto-game-header">
-                            <span class="prob-title">번호 선택</span>
-                        </div>
+                        <!-- [수정] 기존 헤더 삭제 -->
                         <div class="lotto-grid-wrapper">
                             <div class="lotto-game-grid" id="lottoGameProb_row1"></div>
                             <div class="lotto-game-grid" id="lottoGameProb_row2"></div>
@@ -137,11 +137,13 @@
                     </div>
                     <div class="prob-controls">
                         <button class="stat-btn" id="resetProbBtn">초기화</button>
-                        <button class="stat-btn" id="viewProbBtn" disabled>확률 보기</button>
+                        <button class="stat-btn" id="viewProbBtn" disabled>번호 분석하기</button>
                     </div>
                     <div class="prob-output-frame">
-                        <div id="prob-output-text"></div>
+                        <div id="prob-check-output-text"></div>
                     </div>
+                    <!-- [신규] 심층 분석 결과가 표시될 영역 -->
+                    <div id="analysis-section" style="display: none;"></div>
                 </div>
 
                 <!-- 탭 4: 고급 설정 -->

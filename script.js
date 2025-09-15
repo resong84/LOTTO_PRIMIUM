@@ -15,7 +15,12 @@ let selectedNums = {A:[], B:[]};
 let isWinFound = false;
 let autoGenerateInterval = null;
 let autoGenerateCount = 0;
+
+// --- 번호 분석기 탭 변수 ---
 let selectedProbNums = [];
+let selectedForAnalysis = []; // [수정] 심층 분석을 위해 선택된 번호 (최대 2개)
+let selectedFromResult = []; // [수정] 분석 결과에서 선택된 번호 (최대 2개)
+
 
 // --- 커뮤니티 페이지 변수 ---
 let allPosts = [];
@@ -208,8 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== 데이터 처리 및 전역 함수 =====
 // ==================================================================
 
-// [수정] loadLottoHistory 함수를 DOMContentLoaded 밖으로 이동
 async function loadLottoHistory() {
+    if (lottoHistory.length > 0) return; // [수정] 이미 로드되었으면 다시 로드하지 않음
     try {
         const response = await fetch('lottoHistory_optimized.json');
         if (!response.ok) {
@@ -222,23 +227,27 @@ async function loadLottoHistory() {
     }
 }
 
-// [수정] showTab 함수를 DOMContentLoaded 밖으로 이동
 async function showTab(tabIdx) {
     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`tab${tabIdx}`).classList.add('active');
     document.querySelector(`.tab-button:nth-child(${tabIdx})`).classList.add('active');
 
-    if (tabIdx === 2 && lottoHistory.length === 0) {
+    // [수정] 2번 또는 3번 탭을 열 때 과거 데이터 로드
+    if ((tabIdx === 2 || tabIdx === 3) && lottoHistory.length === 0) {
         const resultContainer = document.getElementById('statDetailResultA');
-        resultContainer.innerHTML = '<div style="color:#888;text-align:center;padding-top:25px;">과거 당첨 내역을 불러오는 중...</div>';
+        if (tabIdx === 2) {
+            resultContainer.innerHTML = '<div style="color:#888;text-align:center;padding-top:25px;">과거 당첨 내역을 불러오는 중...</div>';
+        }
         
         await loadLottoHistory();
         
-        if (selectedNums.A.length === 6 || selectedNums.B.length === 6) {
-            checkLottoStats();
-        } else {
-            resultContainer.innerHTML = '';
+        if (tabIdx === 2) {
+            if (selectedNums.A.length === 6 || selectedNums.B.length === 6) {
+                checkLottoStats();
+            } else {
+                resultContainer.innerHTML = '';
+            }
         }
     }
 
@@ -481,11 +490,12 @@ function renderLottoPaper() {
             probCheckBtn = document.createElement('button');
             probCheckBtn.id = `probCheckBtn${game}`;
             probCheckBtn.className = 'lotto-prob-check-btn';
-            probCheckBtn.textContent = '확률 확인';
+            probCheckBtn.textContent = '번호 분석';
             probCheckBtn.onclick = () => copyAndSwitchToProbTab(game);
             headerDiv.appendChild(probCheckBtn);
         }
-        probCheckBtn.style.display = (selectedNums[game].length === 6 && selectedGame === game) ? 'inline-block' : 'none';
+        // [수정] 버튼 표시 로직 변경: selectedGame 조건 제거
+        probCheckBtn.style.display = (selectedNums[game].length === 6) ? 'inline-block' : 'none';
     });
 }
 
@@ -918,6 +928,10 @@ async function createPost() {
     }
 }
 
+// ==================================================================
+// ===== 번호 분석기 탭 신규/수정 함수 =====
+// ==================================================================
+
 function renderProbPaper() {
     const grid1 = document.getElementById('lottoGameProb_row1');
     const grid2 = document.getElementById('lottoGameProb_row2');
@@ -950,8 +964,15 @@ function renderProbPaper() {
 
 function resetProbPaper() {
     selectedProbNums = [];
-    document.getElementById('prob-output-text').innerHTML = '';
-    document.querySelector('.prob-output-frame').style.display = 'none';
+    selectedForAnalysis = [];
+    selectedFromResult = [];
+    document.getElementById('prob-check-output-text').innerHTML = '';
+    document.querySelector('#tab3 .prob-output-frame').style.display = 'none';
+    
+    const analysisSection = document.getElementById('analysis-section');
+    analysisSection.innerHTML = '';
+    analysisSection.style.display = 'none';
+
     renderProbPaper();
 }
 
@@ -970,9 +991,10 @@ function viewProbability() {
     }
 
     const sortedNums = [...selectedProbNums].sort((a, b) => a - b);
-    const outputEl = document.getElementById('prob-output-text');
-    const outputFrame = document.querySelector('.prob-output-frame');
+    const outputEl = document.getElementById('prob-check-output-text');
+    const outputFrame = document.querySelector('#tab3 .prob-output-frame');
     outputEl.innerHTML = '';
+    selectedForAnalysis = []; 
 
     sortedNums.forEach((num, index) => {
         const position = index + 1;
@@ -981,6 +1003,7 @@ function viewProbability() {
         const classification = classifyProbability(prob);
         const item = document.createElement('div');
         item.className = 'prob-result-item';
+        item.dataset.number = num;
         const classCss = classification === "높음" ? 'high' : 'low';
         item.classList.add(classCss);
         item.innerHTML = `
@@ -988,8 +1011,145 @@ function viewProbability() {
             <div class="prob-percent">${prob.toFixed(2)}%</div>
             <div class="prob-class">${classification}</div>
         `;
+        item.addEventListener('click', () => toggleAnalysisSelection(item, num));
         outputEl.appendChild(item);
     });
     
     outputFrame.style.display = 'flex';
+    
+    const analysisSection = document.getElementById('analysis-section');
+    analysisSection.innerHTML = `<div class="analysis-actions-container">
+                                     <button class="stat-btn" id="run-analysis-btn">추천 번호</button>
+                                 </div>`;
+    analysisSection.style.display = 'block';
+    document.getElementById('run-analysis-btn').addEventListener('click', runDeepAnalysis);
+}
+
+function toggleAnalysisSelection(element, number) {
+    if (selectedForAnalysis.includes(number)) {
+        selectedForAnalysis = selectedForAnalysis.filter(n => n !== number);
+        element.classList.remove('selected-for-analysis');
+    } else {
+        if (selectedForAnalysis.length < 2) {
+            selectedForAnalysis.push(number);
+            element.classList.add('selected-for-analysis');
+        } else {
+            alert('분석할 번호는 최대 2개까지 선택할 수 있습니다.');
+        }
+    }
+}
+
+function runDeepAnalysis() {
+    if (selectedForAnalysis.length === 0) {
+        alert('분석할 번호를 1개 이상 선택해주세요.');
+        return;
+    }
+    if (lottoHistory.length === 0) {
+        alert('과거 당첨 데이터가 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+        return;
+    }
+
+    const companionNumbers = new Map();
+    let matchingDrawsCount = 0;
+
+    lottoHistory.forEach(draw => {
+        const winningNumbers = draw.slice(2);
+        if (selectedForAnalysis.every(num => winningNumbers.includes(num))) {
+            matchingDrawsCount++;
+            winningNumbers.forEach(winNum => {
+                if (!selectedForAnalysis.includes(winNum)) {
+                    companionNumbers.set(winNum, (companionNumbers.get(winNum) || 0) + 1);
+                }
+            });
+        }
+    });
+
+    const analysisSection = document.getElementById('analysis-section');
+    let existingResult = document.getElementById('analysis-result-container');
+    if (existingResult) existingResult.remove();
+
+    const resultContainer = document.createElement('div');
+    resultContainer.id = 'analysis-result-container';
+    resultContainer.innerHTML = `<p class="analysis-summary">${selectedForAnalysis.join(', ')}와(과) 함께 나온 기록이 총 ${matchingDrawsCount}회 있습니다.</p>`;
+
+    if (companionNumbers.size > 0) {
+        const sortedCompanions = Array.from(companionNumbers.entries())
+                                      .sort((a, b) => b[1] - a[1])
+                                      .slice(0, 6);
+        
+        resultContainer.innerHTML += '<h4>가장 많이 나온 번호</h4>';
+        
+        // [수정] 2x4 레이아웃을 위한 로직 변경
+        const mostFrequentContainer = document.createElement('div');
+        mostFrequentContainer.className = 'analysis-result-display';
+        
+        const row1 = document.createElement('div');
+        row1.className = 'analysis-result-row';
+        const row2 = document.createElement('div');
+        row2.className = 'analysis-result-row';
+
+        sortedCompanions.forEach(([num, count], index) => {
+            const item = createResultItem(num, count);
+            if (index < 2) {
+                row1.appendChild(item);
+            } else {
+                row2.appendChild(item);
+            }
+        });
+
+        mostFrequentContainer.appendChild(row1);
+        mostFrequentContainer.appendChild(row2);
+        resultContainer.appendChild(mostFrequentContainer);
+
+        const actionsContainer = document.querySelector('.analysis-actions-container');
+        let existingFillBtn = document.getElementById('fill-numbers-btn');
+        if(existingFillBtn) existingFillBtn.remove();
+
+        const fillBtn = document.createElement('button');
+        fillBtn.id = 'fill-numbers-btn';
+        fillBtn.className = 'stat-btn';
+        fillBtn.textContent = '선택 번호로 통계 조회';
+        fillBtn.onclick = fillRemainingNumbers;
+        actionsContainer.appendChild(fillBtn);
+    }
+
+    analysisSection.appendChild(resultContainer);
+}
+
+function createResultItem(number, count) {
+    const item = document.createElement('div');
+    item.className = 'prob-result-item neutral'; 
+    item.dataset.number = number;
+    item.innerHTML = `
+        <div class="prob-num">${number}</div>
+        <div class="prob-class">[${count}회]</div>
+    `;
+    item.addEventListener('click', () => toggleResultSelection(item, number));
+    return item;
+}
+
+function toggleResultSelection(element, number) {
+    if (selectedFromResult.includes(number)) {
+        selectedFromResult = selectedFromResult.filter(n => n !== number);
+        element.classList.remove('selected-from-result');
+    } else {
+        if (selectedFromResult.length < 2) {
+            selectedFromResult.push(number);
+            element.classList.add('selected-from-result');
+        } else {
+            alert('결과 번호는 최대 2개까지 선택할 수 있습니다.');
+        }
+    }
+}
+
+function fillRemainingNumbers() {
+    const combinedNumbers = [...new Set([...selectedForAnalysis, ...selectedFromResult])];
+    if (combinedNumbers.length === 0) {
+        alert('분석 대상 번호 또는 결과 번호를 선택해주세요.');
+        return;
+    }
+    selectedNums.A = combinedNumbers;
+    showTab(2);
+    renderLottoPaper();
+    checkLottoStats();
 }
