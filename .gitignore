@@ -1,0 +1,12 @@
+# 자동으로 생성되는 라이브러리 폴더 무시
+node_modules/
+
+# lotto-community-api 폴더 내의 node_modules 폴더도 무시
+lotto-community-api/node_modules/
+
+# Cloudflare Worker가 생성하는 임시 파일 무시
+.wrangler/
+
+# 운영체제 관련 파일 무시 (macOS, Windows)
+.DS_Store
+Thumbs.db

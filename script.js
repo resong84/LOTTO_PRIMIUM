@@ -4,7 +4,7 @@
 
 // --- 데이터 변수 (앱 전역에서 사용) ---
 let probDf = null;
-let lottoData = {}; // 동적으로 생성될 객체
+let lottoData = {};
 let firstPlaceNumbers = new Set();
 let lottoHistory = [];
 
@@ -12,14 +12,15 @@ let lottoHistory = [];
 const WORKER_URL = 'https://lotto-community-api.resong84.workers.dev'; 
 let selectedGame = 'A';
 let selectedNums = {A:[], B:[]};
+let lockedNums = {A:[], B:[]};
 let isWinFound = false;
 let autoGenerateInterval = null;
 let autoGenerateCount = 0;
 
 // --- 번호 분석기 탭 변수 ---
 let selectedProbNums = [];
-let selectedForAnalysis = []; // [수정] 심층 분석을 위해 선택된 번호 (최대 2개)
-let selectedFromResult = []; // [수정] 분석 결과에서 선택된 번호 (최대 2개)
+let selectedForAnalysis = [];
+let selectedFromResult = [];
 
 
 // --- 커뮤니티 페이지 변수 ---
@@ -169,6 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('statDetailResultB').style.display = 'block';
         document.getElementById('game-B-placeholder').style.display = 'none';
     });
+    
+    const removeGameBBtn = document.getElementById('remove-game-B-btn');
+    removeGameBBtn.addEventListener('click', removeGameB);
 
     const dropdownButtons = document.querySelectorAll('.adv-dropdown-button');
     dropdownButtons.forEach(button => {
@@ -206,6 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetProbBtn').addEventListener('click', resetProbPaper);
     document.getElementById('viewProbBtn').addEventListener('click', viewProbability);
 
+    // [신규] 번호 생성 개수 버튼 이벤트 리스너
+    const comboButtons = document.querySelectorAll('.num-combo-btn');
+    comboButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            comboButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+        });
+    });
+
     window.openImagePopup = openImagePopup;
 });
 
@@ -214,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==================================================================
 
 async function loadLottoHistory() {
-    if (lottoHistory.length > 0) return; // [수정] 이미 로드되었으면 다시 로드하지 않음
+    if (lottoHistory.length > 0) return;
     try {
         const response = await fetch('lottoHistory_optimized.json');
         if (!response.ok) {
@@ -233,7 +246,6 @@ async function showTab(tabIdx) {
     document.getElementById(`tab${tabIdx}`).classList.add('active');
     document.querySelector(`.tab-button:nth-child(${tabIdx})`).classList.add('active');
 
-    // [수정] 2번 또는 3번 탭을 열 때 과거 데이터 로드
     if ((tabIdx === 2 || tabIdx === 3) && lottoHistory.length === 0) {
         const resultContainer = document.getElementById('statDetailResultA');
         if (tabIdx === 2) {
@@ -243,7 +255,8 @@ async function showTab(tabIdx) {
         await loadLottoHistory();
         
         if (tabIdx === 2) {
-            if (selectedNums.A.length === 6 || selectedNums.B.length === 6) {
+            const totalSelected = (lockedNums.A.length + selectedNums.A.length) + (lockedNums.B.length + selectedNums.B.length);
+            if (totalSelected > 0) {
                 checkLottoStats();
             } else {
                 resultContainer.innerHTML = '';
@@ -287,7 +300,6 @@ function generateCombinations() {
     outputText.innerHTML = ''; 
 
     const selectionCombos = document.querySelectorAll('.controls-grid select');
-    const numCombinationsInput = document.getElementById('num-combinations');
     const excludeWinnersCheckbox = document.getElementById('exclude-winners-checkbox');
 
     const columnSelectionChoices = {};
@@ -295,17 +307,13 @@ function generateCombinations() {
         columnSelectionChoices[i + 1] = selectionCombos[i].value;
     }
 
-    let numToGenerate;
-    try {
-        numToGenerate = parseInt(numCombinationsInput.value);
-        if (isNaN(numToGenerate) || numToGenerate < 1 || numToGenerate > 5) {
-            alert("생성할 조합 개수는 1에서 5 사이의 숫자여야 합니다.");
-            return;
-        }
-    } catch (e) {
-        alert("생성할 조합 개수를 숫자로 입력해주세요.");
+    // [수정] 입력창 대신 활성화된 버튼에서 값 가져오기
+    const activeButton = document.querySelector('.num-combo-btn.active');
+    if (!activeButton) {
+        alert("생성할 조합 개수를 선택해주세요.");
         return;
     }
+    const numToGenerate = parseInt(activeButton.dataset.value);
 
     let generatedCount = 0;
     let attempts = 0; 
@@ -459,19 +467,33 @@ function renderLottoPaper() {
         grid2.innerHTML = '';
         grid3.innerHTML = '';
 
+        const totalSelectedCount = selectedNums[game].length + lockedNums[game].length;
+
         for(let i = 1; i <= 45; i++) {
             const btn = document.createElement('div');
             btn.className = 'lotto-num';
-            if (selectedNums[game].includes(i)) btn.classList.add('selected');
-            if (!selectedNums[game].includes(i) && selectedNums[game].length >= 6) btn.classList.add('disabled');
+
+            const isSelected = selectedNums[game].includes(i);
+            const isLocked = lockedNums[game].includes(i);
+
+            if (isSelected) btn.classList.add('selected');
+            if (isLocked) btn.classList.add('locked');
+            if (!isSelected && !isLocked && totalSelectedCount >= 6) {
+                btn.classList.add('disabled');
+            }
+
             btn.innerHTML = `<span>${i}</span>`;
             btn.onclick = () => {
                 selectedGame = game;
-                if(selectedNums[game].includes(i)) {
-                    selectedNums[game] = selectedNums[game].filter(x => x !== i);
-                } else if(selectedNums[game].length < 6) {
+                if (isLocked) {
+                    lockedNums[game] = lockedNums[game].filter(n => n !== i);
+                } else if (isSelected) {
+                    selectedNums[game] = selectedNums[game].filter(n => n !== i);
+                    lockedNums[game].push(i);
+                } else if (totalSelectedCount < 6) {
                     selectedNums[game].push(i);
                 }
+                
                 renderLottoPaper();
                 checkLottoStats();
             };
@@ -494,15 +516,26 @@ function renderLottoPaper() {
             probCheckBtn.onclick = () => copyAndSwitchToProbTab(game);
             headerDiv.appendChild(probCheckBtn);
         }
-        // [수정] 버튼 표시 로직 변경: selectedGame 조건 제거
-        probCheckBtn.style.display = (selectedNums[game].length === 6) ? 'inline-block' : 'none';
+        probCheckBtn.style.display = (totalSelectedCount === 6) ? 'inline-block' : 'none';
     });
 }
 
+function removeGameB() {
+    document.getElementById('lotto-game-B').style.display = 'none';
+    document.getElementById('statDetailResultB').style.display = 'none';
+    document.getElementById('game-B-placeholder').style.display = 'flex';
+    
+    selectedNums.B = [];
+    lockedNums.B = [];
+    
+    checkLottoStats();
+    renderLottoPaper();
+}
+
 function copyAndSwitchToProbTab(game) {
-    const numbersToCopy = selectedNums[game];
+    const numbersToCopy = [...lockedNums[game], ...selectedNums[game]];
     if (numbersToCopy && numbersToCopy.length === 6) {
-        selectedProbNums = [...numbersToCopy];
+        selectedProbNums = numbersToCopy;
         renderProbPaper();
         showTab(3);
         viewProbability();
@@ -511,12 +544,14 @@ function copyAndSwitchToProbTab(game) {
 
 function autoSelect(game, event) {
     event.stopPropagation();
-    let nums = selectedNums[game] ? [...selectedNums[game]] : [];
-    while(nums.length < 6) {
+    let currentNums = [...lockedNums[game]];
+    while(currentNums.length < 6) {
         let n = Math.floor(Math.random() * 45) + 1;
-        if(!nums.includes(n)) nums.push(n);
+        if(!currentNums.includes(n)) {
+            currentNums.push(n);
+        }
     }
-    selectedNums[game] = nums;
+    selectedNums[game] = currentNums.filter(n => !lockedNums[game].includes(n));
     selectedGame = game;
     renderLottoPaper();
     checkLottoStats();
@@ -538,12 +573,14 @@ function autoSelectAll() {
         autoGenerateCount++; 
         counterSpan.textContent = `총 ${autoGenerateCount}회`; 
         ['A','B'].forEach(game => {
-            let nums = [];
-            while(nums.length < 6) {
+            let currentNums = [...lockedNums[game]];
+            while(currentNums.length < 6) {
                 let n = Math.floor(Math.random() * 45) + 1;
-                if(!nums.includes(n)) nums.push(n);
+                if(!currentNums.includes(n)) {
+                    currentNums.push(n);
+                }
             }
-            selectedNums[game] = nums;
+            selectedNums[game] = currentNums.filter(n => !lockedNums[game].includes(n));
         });
         renderLottoPaper();
         checkLottoStats();
@@ -598,6 +635,7 @@ function resetLottoStats() {
         document.getElementById('resetBtn').disabled = false;
     }
     selectedNums = {A:[], B:[]};
+    lockedNums = {A:[], B:[]};
     document.getElementById('rank-slider').value = 4;
     updateSliderTrack();
     renderLottoPaper();
@@ -636,7 +674,7 @@ function checkLottoStats() {
     }
 
     ['A','B'].forEach(game => {
-        const nums = selectedNums[game];
+        const nums = [...lockedNums[game], ...selectedNums[game]];
         const resultContainer = document.getElementById(`statDetailResult${game}`);
         const probDisplay = document.getElementById(`probDisplay${game}`);
         
@@ -664,7 +702,7 @@ function checkLottoStats() {
                     isWinFound = true;
                     let listItems = '';
                     arr.forEach(item => {
-                        const winNums = item.numbers.map(n => nums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
+                        const winNums = [...item.numbers].sort((a, b) => a - b).map(n => nums.includes(n) ? `<b>${n}</b>` : `<span class="non-winning-num">${n}</span>`).join(', ');
                         let bonusText = (rank === 2 && item.bonus) ? ` [B: <b>${item.bonus}</b>]` : '';
                         listItems += `<li class="partition-${rank}">${title} - ${item.draw}회 [${winNums}]${bonusText}</li>`;
                     });
@@ -1030,12 +1068,15 @@ function toggleAnalysisSelection(element, number) {
         selectedForAnalysis = selectedForAnalysis.filter(n => n !== number);
         element.classList.remove('selected-for-analysis');
     } else {
-        if (selectedForAnalysis.length < 2) {
-            selectedForAnalysis.push(number);
-            element.classList.add('selected-for-analysis');
-        } else {
-            alert('분석할 번호는 최대 2개까지 선택할 수 있습니다.');
+        if (selectedForAnalysis.length >= 2) {
+            selectedForAnalysis.forEach(num => {
+                const el = document.querySelector(`.prob-result-item[data-number="${num}"]`);
+                if (el) el.classList.remove('selected-for-analysis');
+            });
+            selectedForAnalysis = [];
         }
+        selectedForAnalysis.push(number);
+        element.classList.add('selected-for-analysis');
     }
 }
 
@@ -1049,6 +1090,17 @@ function runDeepAnalysis() {
         return;
     }
 
+    if (selectedFromResult.length > 0) {
+        selectedFromResult.forEach(num => {
+            const el = document.querySelector(`.prob-result-item.neutral[data-number="${num}"]`);
+            if (el) el.classList.remove('selected-from-result');
+        });
+        selectedFromResult = [];
+    }
+    const analysisSection = document.getElementById('analysis-section');
+    let existingResult = document.getElementById('analysis-result-container');
+    if (existingResult) existingResult.remove();
+    
     const companionNumbers = new Map();
     let matchingDrawsCount = 0;
 
@@ -1064,22 +1116,16 @@ function runDeepAnalysis() {
         }
     });
 
-    const analysisSection = document.getElementById('analysis-section');
-    let existingResult = document.getElementById('analysis-result-container');
-    if (existingResult) existingResult.remove();
-
     const resultContainer = document.createElement('div');
     resultContainer.id = 'analysis-result-container';
-    resultContainer.innerHTML = `<p class="analysis-summary">${selectedForAnalysis.join(', ')}와(과) 함께 나온 기록이 총 ${matchingDrawsCount}회 있습니다.</p>`;
+    const sortedSelection = [...selectedForAnalysis].sort((a, b) => a - b);
+    resultContainer.innerHTML = `<p class="analysis-summary">${sortedSelection.join(', ')}와(과) 함께 나온 기록이 총 ${matchingDrawsCount}회 있습니다.</p>`;
 
     if (companionNumbers.size > 0) {
         const sortedCompanions = Array.from(companionNumbers.entries())
                                       .sort((a, b) => b[1] - a[1])
                                       .slice(0, 6);
         
-        resultContainer.innerHTML += '<h4>가장 많이 나온 번호</h4>';
-        
-        // [수정] 2x4 레이아웃을 위한 로직 변경
         const mostFrequentContainer = document.createElement('div');
         mostFrequentContainer.className = 'analysis-result-display';
         
@@ -1148,7 +1194,17 @@ function fillRemainingNumbers() {
         alert('분석 대상 번호 또는 결과 번호를 선택해주세요.');
         return;
     }
-    selectedNums.A = combinedNumbers;
+    
+    // [수정] '선택'이 아닌 '고정' 상태로 번호 채우기
+    selectedNums.A = [];
+    lockedNums.A = combinedNumbers;
+
+    const gameB = document.getElementById('lotto-game-B');
+    if (gameB.style.display === 'flex') {
+        selectedNums.B = [];
+        lockedNums.B = combinedNumbers;
+    }
+
     showTab(2);
     renderLottoPaper();
     checkLottoStats();

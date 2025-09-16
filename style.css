@@ -41,8 +41,29 @@ body {
 .logo-image { max-width: 300px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: block; }
 #start-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: white; color: #FFC107; border: 2px solid #FFC107; padding: 6px 35px; font-size: 1.1em; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 #start-button:hover { background-color: #FFF8E1; color: #FFB300; border-color: #FFB300; transform: translateX(-50%) translateY(-2px); }
-#admin-button { position: absolute; top: 15px; right: 15px; background: #fff; border: 1px solid #ccc; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: all 0.2s; }
-#admin-button:hover { background: #f0f0f0; transform: scale(1.1); }
+/* [수정] 관리자 버튼 스타일 변경 및 위치 이동 */
+#admin-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    padding: 0;
+    font-size: 32px; /* 아이콘 크기 조절 */
+    color: rgba(0, 0, 0, 0.4);
+    transition: color 0.2s;
+}
+#admin-button:hover {
+    color: rgba(0, 0, 0, 0.7);
+}
+#admin-button::before {
+    content: '🔒'; /* 뚱뚱한 자물쇠 이모지 사용 */
+    font-weight: 900;
+}
+
 
 /* --- 메인 앱 스타일 --- */
 .container {
@@ -69,8 +90,8 @@ h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; borde
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
     row-gap: 5px;
-    column-gap: 10px; 
-    margin: 0px 0px 5px; 
+    column-gap: 15px;
+    margin: 5px 0px 5px;
 }
 .control-group { display: flex; flex-direction: row; align-items: center; gap: 5px; }
 label { font-weight: 700; margin-bottom: 0; color: #555; white-space: nowrap; }
@@ -86,9 +107,25 @@ select, input[type="number"] {
 }
 select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107; box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2); }
 .generation-controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; margin: 0px 0px 5px; }
-#num-combinations {
-    width: 63px; 
-    padding: 3px; 
+.num-combinations-buttons {
+    display: flex;
+    gap: 5px;
+}
+.num-combo-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #555;
+    transition: all 0.2s;
+}
+.num-combo-btn.active {
+    background-color: #FFC107;
+    border-color: #FFB300;
+    color: #333;
+    transform: scale(1.05);
 }
 #generate-button { background-color: #FFC107; color: #333; border: none; padding: 5px 8px; font-size: 1em; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.2s; margin-bottom: 0; }
 #generate-button:hover { background-color: #FFB300; transform: translateY(-2px); }
@@ -110,9 +147,9 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .generated-combination-row {
     display: flex;
     flex-wrap: wrap;
-    row-gap: 6px; /* +2px 줄 간격 적용 */
+    row-gap: 6px;
     column-gap: 10px;
-    justify-content: flex-start; /* 정렬 문제 해결 */
+    justify-content: flex-start;
 }
 .generated-combination-container {
     display: flex;
@@ -123,10 +160,10 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .generated-combination-container .combination-header {
     font-weight: 700;
-    text-align: left; /* 정렬 문제 해결 */
+    text-align: left;
     font-size: 1.1em;
     color: #333;
-    min-width: 25px; /* 정렬 문제 해결 (최소 너비 확보) */
+    min-width: 25px;
 }
 /* '번호 생성기' 탭에서 재사용되는 확률 확인 UI 스타일 */
 #tab1 .prob-output-frame {
@@ -153,16 +190,16 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     font-size: 0.8em;
 }
 #tab1 .prob-result-item .prob-num {
-    font-size: 1.6em; /* +2px 폰트 사이즈 적용 */
+    font-size: 1.6em;
 }
 #tab1 .prob-result-item .prob-percent {
-    font-size: 0.58em; /* -1px 폰트 사이즈 적용 */
-    color: #444; /* 진한 회색으로 수정 */
+    font-size: 0.58em;
+    color: #444;
 }
 #tab1 .prob-result-item .prob-class {
-    font-size: 0.58em; /* -1px 폰트 사이즈 적용 */
-    padding: 2px 3px; /* 패딩 적용 */
-    color: #444; /* 진한 회색으로 수정 */
+    font-size: 0.58em;
+    padding: 2px 3px;
+    color: #444;
 }
 
 
@@ -210,10 +247,10 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     flex-direction: column;
     flex-grow: 1; 
     border: none;
-    box-shadow: none; /* 그림자 제거 */
+    box-shadow: none;
     border-radius: 0 8px 8px 8px;
     padding: 15px;
-    background-color: transparent; /* 모든 탭 배경 투명하게 */
+    background-color: transparent;
 }
 .tab-content.active { 
     display: flex;
@@ -226,7 +263,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .stat-btn { padding: 3px 6px; font-size: 0.95em; border-radius: 8px; border: none; background: #FFC107; color: #333; cursor: pointer; margin-left: 10px; font-weight: 700; transition: background-color 0.3s, transform 0.1s; }
 .stat-btn:hover { background: #FFB300; }
 .stat-btn:disabled { background: #ccc; cursor: not-allowed; }
-.stat-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.stat-btn:active { transform: scale(0.95); }
 
 /* --- 당첨 통계 조회 탭 스타일 --- */
 .filter-controls-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; justify-content: center; flex-wrap: wrap; }
@@ -245,10 +282,37 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .game-boards-container { display: flex; flex-direction: column; gap: 5px; align-items: center; }
 .result-windows-container { display: flex; flex-direction: column; gap: 5px; align-items: center; }
 .lotto-game, .lotto-game-placeholder { min-width: 0; width: 312px; height: 75px; }
-.lotto-game { background: #fff; border: 2px solid #e53935; border-radius: 16px; box-shadow: 0 2px 8px rgba(229,57,53,0.08); padding: 4px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s, border-color 0.2s; }
+.lotto-game { position: relative; background: #fff; border: 2px solid #e53935; border-radius: 16px; box-shadow: 0 2px 8px rgba(229,57,53,0.08); padding: 4px; display: flex; flex-direction: column; align-items: center; transition: box-shadow 0.2s, border-color 0.2s; }
 .lotto-game.selected {
     border-color: #c62828;
     box-shadow: 0 4px 12px rgba(229, 57, 53, 0.2);
+}
+.remove-game-btn {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+    background-color: #ffffff;
+    color: #e53935;
+    border: 1px solid #e53935;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 900;
+    line-height: 10px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    padding: 1px 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.remove-game-btn:hover {
+    background-color: #e53935;
+    color: #ffffff;
+    transform: scale(1.1);
 }
 
 .lotto-game-placeholder {
@@ -314,7 +378,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .lotto-auto-btn { margin-left: 4px; padding: 1px; border-radius: 6px; border: 1px solid #e57373; background: #fff3f3; color: #e53935; font-size: 0.7em; font-weight: 700; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.1s; }
 .lotto-auto-btn:hover { background: #e53935; color: #fff; }
-.lotto-auto-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.lotto-auto-btn:active { transform: scale(0.95); }
 .lotto-prob-check-btn { 
     margin-left: 4px; 
     padding: 1px; 
@@ -326,10 +390,10 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     font-weight: 700; 
     cursor: pointer; 
     transition: background 0.2s, color 0.2s, transform 0.1s; 
-    display: none; /* Initially hidden */
+    display: none;
 }
 .lotto-prob-check-btn:hover { background: #e53935; color: #fff; }
-.lotto-prob-check-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.lotto-prob-check-btn:active { transform: scale(0.95); }
 .lotto-grid-wrapper { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
 .lotto-game-grid { display: grid; grid-template-columns: repeat(15, 1fr); gap: 4px; width: 100%; }
 #lottoGameA_row1, #lottoGameB_row1, #lottoGameA_row2, #lottoGameB_row2, #lottoGameProb_row1, #lottoGameProb_row2 { margin-bottom: 4px; }
@@ -344,6 +408,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 
 .lotto-num span {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -362,6 +427,23 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     background: #e53935;
     color: #fff;
     border: 1px inset #b71c1c;
+}
+
+.lotto-num.locked span {
+    background: #b71c1c;
+    color: #fff;
+    border: 1px solid #7f0000;
+}
+.lotto-num.locked span::after {
+    content: '';
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    right: -1px;
+    bottom: -1px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff' stroke='%23ffffff' stroke-width='1'%3E%3Cpath d='M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .lotto-num.disabled span {
@@ -392,7 +474,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 
 /* --- 고급 설정 탭 스타일 --- */
 .adv-settings-container { display: flex; flex-direction: column; gap: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 9px; }
 .setting-item-inline { flex-wrap: nowrap; }
 .setting-item-inline .adv-select { flex-shrink: 0; }
 .adv-checkbox { width: 20px; height: 20px; cursor: pointer; }
@@ -447,7 +529,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .adv-dropdown-button:hover {
     background-color: #f8f9fa;
 }
-.adv-dropdown-button:active { transform: scale(0.98); } /* [수정] 버튼 클릭 효과 */
+.adv-dropdown-button:active { transform: scale(0.98); }
 .adv-dropdown-content {
     display: none;
     padding: 15px;
@@ -473,7 +555,6 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .adv-dropdown-content li strong {
     color: #333;
 }
-/* 드롭다운 내부의 setting-item은 border가 없도록 함 */
 .adv-dropdown-content .setting-item {
     border-bottom: none;
     padding-bottom: 0;
@@ -506,7 +587,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .image-upload-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .image-upload-btn { background-color: #FFC107; color: #333; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; border: none; }
 .image-upload-btn:hover { background-color: #FFB300; }
-.image-upload-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.image-upload-btn:active { transform: scale(0.95); }
 .image-upload-btn.uploaded { background-color: #e9ecef; color: #495057; }
 .image-upload-btn.uploaded:hover { background-color: #dee2e6; }
 .image-upload-input { display: none; }
@@ -515,7 +596,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 #post-button { background-color: #FFC107; color: #333; border: none; padding: 6px 20px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: background-color 0.3s, transform 0.1s; margin-left: auto; }
 #post-button:hover { background-color: #FFB300; }
 #post-button:disabled { background-color: #ccc; cursor: not-allowed; }
-#post-button:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+#post-button:active { transform: scale(0.95); }
 #community-feed {
     display: flex;
     flex-direction: column;
@@ -585,7 +666,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin-top: 2px;
     transition: transform 0.1s;
 }
-.view-image-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.view-image-btn:active { transform: scale(0.95); }
 
 #pagination-container {
     display: flex;
@@ -617,11 +698,11 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     color: #aaa;
     cursor: not-allowed;
 }
-.page-btn:active { transform: scale(0.95); } /* [수정] 버튼 클릭 효과 */
+.page-btn:active { transform: scale(0.95); }
 
 /* --- 이미지 팝업 스타일 --- */
 .image-popup-overlay {
-    display: none; /* 기본은 숨김 */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
@@ -680,9 +761,13 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     justify-content: center;
     margin-bottom: 12px;
 }
+#tab3 .prob-output-frame,
+#analysis-result-container {
+    width: 312px;
+    box-sizing: border-box;
+}
 .prob-output-frame {
     display: none;
-    width: 100%;
     background-color: #ffffff;
     border: none;
     padding: 4px;
@@ -754,7 +839,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* [신규] 번호 분석기 심층 분석 스타일 */
+/* 번호 분석기 심층 분석 스타일 */
 #analysis-section {
     width: 100%;
     margin: 0;
@@ -777,39 +862,27 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin: 10px 0px 0px 10px;
 }
 #analysis-result-container {
-    width: 100%;
-    max-width: 340px;
-    margin: 12px; /* [수정] 마진 12px 적용 */
+    margin: 12px;
     background: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 10px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    box-sizing: border-box;
+    gap: 8px;
 }
 .analysis-summary {
     font-size: 0.9em;
     color: #555;
-    margin: 0 0 5px 0;
+    margin: 0;
     font-weight: 700;
 }
-#analysis-result-container h4 {
-    margin: 5px 0;
-    font-size: 1em;
-    color: #333;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 3px;
-}
-/* [수정] 분석 결과 레이아웃을 column으로 변경 */
 .analysis-result-display {
     display: flex;
     flex-direction: column;
     gap: 6px;
     align-items: center;
 }
-/* [신규] 분석 결과 행 스타일 */
 .analysis-result-row {
     display: flex;
     justify-content: center;
@@ -820,7 +893,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     padding-top: 2px;
     padding-bottom: 2px;
     gap: 4px;
-    flex: 1 1 0; /* 각 아이템이 행 내에서 동일한 너비를 갖도록 함 */
+    flex: 1 1 0;
 }
 .analysis-result-display .prob-result-item .prob-num {
     font-size: 1.5em;
