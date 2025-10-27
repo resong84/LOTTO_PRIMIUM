@@ -41,7 +41,6 @@ body {
 .logo-image { max-width: 300px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: block; }
 #start-button { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: white; color: #FFC107; border: 2px solid #FFC107; padding: 6px 35px; font-size: 1.1em; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
 #start-button:hover { background-color: #FFF8E1; color: #FFB300; border-color: #FFB300; transform: translateX(-50%) translateY(-2px); }
-/* [수정] 관리자 버튼 스타일 변경 및 위치 이동 */
 #admin-button {
     position: absolute;
     top: 10px;
@@ -472,14 +471,82 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .non-winning-num { font-size: 0.8em; color: #aaa; }
 
+/* --- [신규] 회차별 당첨 번호 조회 스타일 --- */
+#round-lookup-container {
+    margin-top: 15px;
+    padding: 12px;
+}
+#round-lookup-container h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.1em;
+    color: #424242;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #FFC107;
+    display: inline-block;
+}
+.round-lookup-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.round-lookup-controls input[type="number"] {
+    flex-grow: 1;
+    text-align: center;
+}
+/* Chrome, Safari, Edge, Opera에서 숫자 입력 화살표 숨기기 */
+.round-lookup-controls input::-webkit-outer-spin-button,
+.round-lookup-controls input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox에서 숫자 입력 화살표 숨기기 */
+.round-lookup-controls input[type=number] {
+  -moz-appearance: textfield;
+}
+.round-lookup-controls .stat-btn {
+    flex-shrink: 0;
+    margin-left: 0;
+}
+#round-result-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    min-height: 40px;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+}
+.winning-num-ball {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9em;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2);
+}
+.bonus-num-ball {
+    background-color: #757575; /* 보너스 번호 색상 */
+}
+.plus-symbol {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: #888;
+}
+
 /* --- 고급 설정 탭 스타일 --- */
 .adv-settings-container { display: flex; flex-direction: column; gap: 10px; padding: 15px; background: #f8f9fa; border-radius: 8px; text-align: left; }
-.setting-item { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 9px; }
-.setting-item-inline { flex-wrap: nowrap; }
-.setting-item-inline .adv-select { flex-shrink: 0; }
+.setting-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.setting-item label { flex-grow: 1; text-align: left; }
+.setting-item .adv-checkbox, .setting-item .adv-select, .setting-item .adv-radio-group { flex-shrink: 0; }
 .adv-checkbox { width: 20px; height: 20px; cursor: pointer; }
 .adv-select { padding: 8px; border-radius: 6px; border: 1px solid #ccc; background-color: #fff; }
-#min-appearance-select { width: 40%; }
+#min-appearance-select { width: 110px; }
 .adv-radio-group { display: flex; gap: 10px; }
 .adv-radio-group input[type="radio"] { display: none; }
 
@@ -558,6 +625,15 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .adv-dropdown-content .setting-item {
     border-bottom: none;
     padding-bottom: 0;
+}
+
+.help-text {
+    font-size: 0.8em;
+    color: #e53935;
+    line-height: 1.2;
+    text-align: left;
+    padding: 0 5px;
+    margin-top: -10px;
 }
 
 

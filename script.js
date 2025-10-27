@@ -66,7 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             lottoData = createLottoDataObject(probDf);
 
             document.getElementById('generate-button').disabled = false;
-            document.getElementById('viewProbBtn').disabled = false;
+            // [수정] 초기 로딩 시 버튼 상태는 renderProbPaper에서 관리하므로 이 줄은 제거해도 무방합니다.
+            // document.getElementById('viewProbBtn').disabled = false; 
 
         } catch (e) {
             alert(`'lotto_data.json' 파일을 불러오는 데 실패했습니다: ${e.message}`);
@@ -175,14 +176,25 @@ document.addEventListener('DOMContentLoaded', () => {
     removeGameBBtn.addEventListener('click', removeGameB);
 
     const dropdownButtons = document.querySelectorAll('.adv-dropdown-button');
-    dropdownButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const targetId = button.dataset.target;
-            const content = document.getElementById(targetId);
-            const isShown = content.classList.toggle('show');
-            
-            const baseText = button.textContent.slice(0, -2);
-            button.textContent = isShown ? `${baseText} ▲` : `${baseText} ▼`;
+    dropdownButtons.forEach(clickedButton => {
+        clickedButton.addEventListener('click', () => {
+            const targetId = clickedButton.dataset.target;
+            const targetContent = document.getElementById(targetId);
+
+            dropdownButtons.forEach(otherButton => {
+                const otherContentId = otherButton.dataset.target;
+                const otherContent = document.getElementById(otherContentId);
+
+                if (otherButton !== clickedButton) {
+                    otherContent.classList.remove('show');
+                    const baseText = otherButton.textContent.slice(0, -2).trim();
+                    otherButton.textContent = `${baseText} ▼`;
+                }
+            });
+
+            const isShown = targetContent.classList.toggle('show');
+            const baseText = clickedButton.textContent.slice(0, -2).trim();
+            clickedButton.textContent = isShown ? `${baseText} ▲` : `${baseText} ▼`;
         });
     });
 
@@ -210,13 +222,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('resetProbBtn').addEventListener('click', resetProbPaper);
     document.getElementById('viewProbBtn').addEventListener('click', viewProbability);
 
-    // [신규] 번호 생성 개수 버튼 이벤트 리스너
     const comboButtons = document.querySelectorAll('.num-combo-btn');
     comboButtons.forEach(button => {
         button.addEventListener('click', () => {
             comboButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
         });
+    });
+
+    // [신규] 회차별 당첨 번호 조회 이벤트 리스너
+    const roundSearchBtn = document.getElementById('round-search-btn');
+    const roundInput = document.getElementById('round-input');
+    roundSearchBtn.addEventListener('click', searchRound);
+    roundInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            searchRound();
+        }
     });
 
     window.openImagePopup = openImagePopup;
@@ -234,6 +255,15 @@ async function loadLottoHistory() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         lottoHistory = await response.json();
+
+        // [신규] 데이터 로드 후 최신 회차 정보 표시
+        if (lottoHistory.length > 0) {
+            const latestDraw = lottoHistory[0];
+            const latestRoundNumber = latestDraw[0];
+            document.getElementById('round-input').value = latestRoundNumber;
+            displayWinningNumbers(latestDraw);
+        }
+
     } catch (e) {
         console.error("'lottoHistory_optimized.json' 파일을 불러오는 데 실패했습니다:", e);
         alert('과거 당첨 내역 데이터를 불러오는 데 실패했습니다. 통계 조회 기능이 작동하지 않을 수 있습니다.');
@@ -307,7 +337,6 @@ function generateCombinations() {
         columnSelectionChoices[i + 1] = selectionCombos[i].value;
     }
 
-    // [수정] 입력창 대신 활성화된 버튼에서 값 가져오기
     const activeButton = document.querySelector('.num-combo-btn.active');
     if (!activeButton) {
         alert("생성할 조합 개수를 선택해주세요.");
@@ -998,6 +1027,12 @@ function renderProbPaper() {
         else if (i <= 30) grid2.appendChild(btn);
         else grid3.appendChild(btn);
     }
+
+    // [수정] '번호 분석하기' 버튼 활성화 로직 추가
+    const viewProbBtn = document.getElementById('viewProbBtn');
+    if (viewProbBtn) {
+        viewProbBtn.disabled = selectedProbNums.length !== 6;
+    }
 }
 
 function resetProbPaper() {
@@ -1195,7 +1230,6 @@ function fillRemainingNumbers() {
         return;
     }
     
-    // [수정] '선택'이 아닌 '고정' 상태로 번호 채우기
     selectedNums.A = [];
     lockedNums.A = combinedNumbers;
 
@@ -1208,4 +1242,63 @@ function fillRemainingNumbers() {
     showTab(2);
     renderLottoPaper();
     checkLottoStats();
+}
+
+// ==================================================================
+// ===== [신규] 회차별 당첨 번호 조회 함수 =====
+// ==================================================================
+
+function searchRound() {
+    const roundInput = document.getElementById('round-input');
+    const roundNumber = parseInt(roundInput.value);
+
+    if (isNaN(roundNumber) || roundNumber < 1) {
+        displayWinningNumbers(null); // 오류 메시지 표시
+        return;
+    }
+
+    const foundDraw = lottoHistory.find(draw => draw[0] === roundNumber);
+    displayWinningNumbers(foundDraw);
+}
+
+function displayWinningNumbers(drawData) {
+    const resultDisplay = document.getElementById('round-result-display');
+    resultDisplay.innerHTML = '';
+
+    if (!drawData) {
+        resultDisplay.textContent = '해당 회차의 당첨 정보를 찾을 수 없습니다.';
+        resultDisplay.style.color = '#e53935';
+        return;
+    }
+    resultDisplay.style.color = 'inherit';
+
+    const bonusNumber = drawData[1];
+    const winningNumbers = drawData.slice(2).sort((a, b) => a - b);
+
+    const getColorForNumber = (num) => {
+        if (num <= 10) return '#fbc400'; // 노란색
+        if (num <= 20) return '#69c8f2'; // 파란색
+        if (num <= 30) return '#ff7272'; // 빨간색
+        if (num <= 40) return '#aaa';    // 회색
+        return '#b0d840';               // 녹색
+    };
+
+    winningNumbers.forEach(num => {
+        const ball = document.createElement('div');
+        ball.className = 'winning-num-ball';
+        ball.style.backgroundColor = getColorForNumber(num);
+        ball.textContent = num;
+        resultDisplay.appendChild(ball);
+    });
+
+    const plus = document.createElement('div');
+    plus.className = 'plus-symbol';
+    plus.textContent = '+';
+    resultDisplay.appendChild(plus);
+
+    const bonusBall = document.createElement('div');
+    bonusBall.className = 'winning-num-ball bonus-num-ball';
+    bonusBall.style.backgroundColor = getColorForNumber(bonusNumber);
+    bonusBall.textContent = bonusNumber;
+    resultDisplay.appendChild(bonusBall);
 }

@@ -11,7 +11,6 @@
     <div id="landing-page">
         <div class="landing-container">
             <img src="googleplayimage.png" alt="Lotto 6/45 Logo" class="logo-image">
-            <!-- [수정] 관리자 버튼 위치 이동 -->
             <button id="admin-button" onclick="window.location.href='admin.html'">⚙️</button>
             <button id="start-button">시작</button>
         </div>
@@ -129,6 +128,18 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- [신규] 회차별 당첨 번호 조회 섹션 -->
+                    <div id="round-lookup-container" class="settings-section">
+                        <h3>회차별 당첨 번호</h3>
+                        <div class="round-lookup-controls">
+                            <input type="number" id="round-input" placeholder="회차 입력">
+                            <button id="round-search-btn" class="stat-btn">조회</button>
+                        </div>
+                        <div id="round-result-display">
+                            <!-- 당첨 번호가 여기에 표시됩니다. -->
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 탭 3: 번호 분석기 -->
@@ -156,14 +167,15 @@
                     <div class="adv-settings-container">
                         
                         <div class="adv-dropdown-container">
-                            <button class="adv-dropdown-button" data-target="generator-settings-content">번호 생성기 ▼</button>
+                            <button class="adv-dropdown-button" data-target="generator-settings-content">번호 생성기 설정 ▼</button>
                             <div id="generator-settings-content" class="adv-dropdown-content">
                                 <div class="setting-item">
-                                    <label for="exclude-winners-checkbox">역대 1등 당첨 번호 제외하기</label>
+                                    <label for="exclude-winners-checkbox">1등 당첨 번호 제외</label>
                                     <input type="checkbox" id="exclude-winners-checkbox" class="adv-checkbox">
                                 </div>
+                                <div class="help-text">'번호 생성기' 사용 시, 역대 1등 당첨 조합을 결과에서 제외합니다.</div>
                                 <div class="setting-item setting-item-inline">
-                                    <label for="min-appearance-select">'랜덤' 선택 시 빈도 설정</label>
+                                    <label for="min-appearance-select">각 칸의 '랜덤' 빈도 설정</label>
                                     <select id="min-appearance-select" class="adv-select">
                                         <option value="0">0회</option>
                                         <option value="1">1회</option>
@@ -171,18 +183,18 @@
                                         <option value="3">3회</option>
                                         <option value="4">4회</option>
                                         <option value="5">5회</option>
-                                        <option value="6">6회</option>
+                                        <option value="6">6회*</option>
                                         <option value="7">7회</option>
                                         <option value="8">8회</option>
-                                        <option value="9">9회</option>
+                                        <option value="9">9회*</option>
                                         <option value="10">10회</option>
-                                        <option value="11">11회</option>
+                                        <option value="11">11회*</option>
                                         <option value="12">12회</option>
-                                        <option value="13">13회</option>
+                                        <option value="13">13회*</option>
                                         <option value="14">14회</option>
-                                        <option value="15">15회</option>
                                     </select>
                                 </div>
+                                <div class="help-text">'번호 생성기'의 각 칸을 '랜덤'으로 설정했을 때, 최소 당첨 등장 횟수를 지정합니다.</div>
                             </div>
                         </div>
 
@@ -198,25 +210,26 @@
                                         <input type="radio" id="speed-x20" name="speed-control" value="50"><label for="speed-x20">x20</label>
                                     </div>
                                 </div>
+                                <div class="help-text">'자동 생성' 기능의 번호 조합 변경 속도를 조절합니다.</div>
                                 <div class="setting-item">
-                                    <label>자동 생성 시 사운드 ON/OFF</label>
+                                    <label>자동 생성 시 효과음</label>
                                     <div class="adv-radio-group">
                                         <input type="radio" id="sound-on" name="sound-control" value="0.7" checked><label for="sound-on">ON</label>
                                         <input type="radio" id="sound-off" name="sound-control" value="0"><label for="sound-off">OFF</label>
                                     </div>
                                 </div>
+                                <div class="help-text">'자동 생성' 중 설정 등수에 당첨되면 효과음이 재생됩니다.</div>
                             </div>
                         </div>
                         
                         <div class="adv-dropdown-container">
-                            <button class="adv-dropdown-button" data-target="user-guide-content">사용 설명 ▼</button>
-                            <div id="user-guide-content" class="adv-dropdown-content">
+                            <button class="adv-dropdown-button" data-target="program-guide-content">프로그램 설명 ▼</button>
+                            <div id="program-guide-content" class="adv-dropdown-content">
                                 <ul>
-                                    <li><strong>번호 생성기:</strong> 통계 기반 번호를 생성합니다.</li>
-                                    <li><strong>통계 조회:</strong> 과거 당첨 내역과 내 번호를 비교합니다.</li>
-                                    <li><strong>자동 생성:</strong> 설정 등수에 당첨될 때까지 계속 실행합니다.</li>
-                                    <li><strong>1등 제외:</strong> 번호 생성 시 역대 1등 조합을 제외합니다.</li>
-                                    <li><strong>빈도 설정:</strong> '랜덤' 선택 시 최소 등장 횟수를 지정합니다.</li>
+                                    <li><strong>번호 생성기:</strong> 각 번호가 위치(칸)별로 당첨될 확률 통계에 기반하여 번호를 생성합니다. '높은 확률'은 통계적으로 자주 나온 번호, '낮은 확률'은 잘 나오지 않았던 번호를 의미합니다.</li>
+                                    <li><strong>당첨 통계 조회:</strong> 내가 선택한 번호 조합이 과거 몇 회차에 몇 등으로 당첨되었는지 확인할 수 있습니다. '자동 생성'을 체크하면 설정한 등수에 당첨될 때까지 자동으로 번호를 조합합니다.</li>
+                                    <li><strong>번호 분석기:</strong> 선택한 6개 번호의 각 칸별 당첨 확률을 시각적으로 보여줍니다. 또한, 특정 번호(1~2개)를 선택하여 그 번호들과 함께 가장 많이 당첨되었던 '궁합수'를 찾아볼 수 있습니다.</li>
+                                    <li><strong>커뮤니티:</strong> 다른 사용자들과 생성한 번호나 당첨 경험을 공유하는 공간입니다.</li>
                                 </ul>
                             </div>
                         </div>
