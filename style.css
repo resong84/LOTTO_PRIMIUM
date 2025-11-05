@@ -102,6 +102,9 @@ h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; borde
 }
 
 /* --- 번호 생성기 탭 스타일 --- */
+#tab1 .output-frame {
+    margin-bottom: 0px;
+}
 .controls-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
