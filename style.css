@@ -82,24 +82,24 @@ body {
 .content-layer { position: relative; z-index: 2; transition: min-height 0.3s ease; flex-grow: 1; display: flex; flex-direction: column; }
 h1 { 
     color: #FFC107; 
-    margin: 10px 0px 10px; 
-    font-size: 2.4em; 
+    margin: 2px; 
+    font-size: 2.1em; 
     font-weight: 700; 
-    position: relative; /* 버전 표시를 위해 추가 */
+    position: relative;
 }
 #version-indicator {
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-size: 0.4em;
+    font-size: 0.35em;
     font-weight: 700;
-    color: #aaa;
-    background-color: #f0f0f0;
-    padding: 2px 5px;
-    border-radius: 4px;
+    color: #FFC107;
+    padding: 0 0 4px 4px;
+    vertical-align: bottom;
 }
-.input-frame, .output-frame { border: 1px solid #dcdcdc; border-radius: 8px; padding: 8px; margin-bottom: 20px; background-color: #ffffff; }
+.input-frame, .output-frame { border: 1px solid #dcdcdc; border-radius: 8px; padding: 8px; margin-bottom: 4px; background-color: #ffffff; }
 h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #FFC107; padding-bottom: 5px; display: inline-block; font-weight: 700; }
+.input-frame h2 {
+    margin-bottom: 4px;
+    padding-bottom: 2px;
+}
 
 /* --- 번호 생성기 탭 스타일 --- */
 .controls-grid { 
@@ -156,8 +156,8 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 4px;
-    min-height: 150px;
+    padding: 0px;
+    min-height: 50px;
     display: block;
 }
 .generated-combination-row {
@@ -166,6 +166,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     row-gap: 6px;
     column-gap: 10px;
     justify-content: flex-start;
+    padding: 4px; /* output-text의 padding을 이곳으로 이동 */
 }
 .generated-combination-container {
     display: flex;
