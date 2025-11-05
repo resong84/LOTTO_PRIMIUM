@@ -562,8 +562,7 @@ function renderLottoPaper() {
 
 function addGameB() {
     if (APP_VERSION === 'free') {
-        // 10초 미리보기 기능
-        if (previewTimer) return; // 이미 미리보기가 실행 중이면 중복 실행 방지
+        if (previewTimer) return;
         
         alert('게임 보드 추가는 유료 버전 기능입니다. 10초간 미리보기를 시작합니다.');
         
@@ -575,17 +574,22 @@ function addGameB() {
         statB.style.display = 'block';
         placeholder.style.display = 'none';
         
-        // 10초 후 원래대로 되돌림
         previewTimer = setTimeout(() => {
             gameB.style.display = 'none';
             statB.style.display = 'none';
             placeholder.style.display = 'flex';
+            
+            // 데이터 초기화 (버그 수정)
+            selectedNums.B = [];
+            lockedNums.B = [];
+            renderLottoPaper(); // 화면 갱신
+            checkLottoStats(); // 통계창 갱신
+            
             alert('10초 미리보기가 종료되었습니다. 유료 버전을 구매하여 모든 기능을 사용해보세요!');
-            previewTimer = null; // 타이머 초기화
+            previewTimer = null;
         }, 10000);
 
     } else {
-        // 유료 버전의 정상 기능
         document.getElementById('lotto-game-B').style.display = 'flex';
         document.getElementById('statDetailResultB').style.display = 'block';
         document.getElementById('game-B-placeholder').style.display = 'none';
@@ -1079,7 +1083,7 @@ function renderProbPaper() {
 
 function resetProbPaper() {
     selectedProbNums = [];
-    revertAnalysisPreview(false); // 미리보기 상태 및 UI 모두 초기화
+    revertAnalysisPreview(false);
     renderProbPaper();
 }
 
@@ -1132,11 +1136,19 @@ function viewProbability() {
     outputFrame.style.display = 'flex';
     
     const analysisSection = document.getElementById('analysis-section');
-    analysisSection.innerHTML = `<div class="analysis-actions-container">
-                                     <button class="stat-btn" id="run-analysis-btn">추천 번호</button>
-                                 </div>`;
+    const runAnalysisBtn = document.createElement('button');
+    runAnalysisBtn.className = 'stat-btn';
+    runAnalysisBtn.id = 'run-analysis-btn';
+    runAnalysisBtn.innerHTML = `추천 번호<span class="small-text">(최대 2개)</span>`;
+    runAnalysisBtn.onclick = runDeepAnalysis;
+
+    const actionsContainer = document.createElement('div');
+    actionsContainer.className = 'analysis-actions-container';
+    actionsContainer.appendChild(runAnalysisBtn);
+    
+    analysisSection.innerHTML = ''; // 기존 내용 초기화
+    analysisSection.appendChild(actionsContainer);
     analysisSection.style.display = 'block';
-    document.getElementById('run-analysis-btn').addEventListener('click', runDeepAnalysis);
 }
 
 function revertAnalysisPreview(showAlert = true) {
@@ -1234,7 +1246,7 @@ function runDeepAnalysis() {
         sortedCompanions.forEach(([num, count], index) => {
             const item = createResultItem(num, count);
             if (index < 2) {
-                item.classList.add('highlight-red'); // 상위 2개 강조
+                item.classList.add('highlight-red');
                 row1.appendChild(item);
             } else {
                 row2.appendChild(item);
@@ -1248,9 +1260,9 @@ function runDeepAnalysis() {
         const fillBtn = document.createElement('button');
         fillBtn.id = 'fill-numbers-btn';
         fillBtn.className = 'stat-btn';
-        fillBtn.textContent = '선택 번호로 통계 조회';
+        fillBtn.innerHTML = `선택 번호로 통계 조회<span class="small-text">(최대 2개)</span>`;
         fillBtn.onclick = fillRemainingNumbers;
-        resultContainer.appendChild(fillBtn); // 결과창 아래에 버튼 추가
+        resultContainer.appendChild(fillBtn);
     }
 
     document.getElementById('analysis-section').appendChild(resultContainer);
@@ -1402,7 +1414,6 @@ function applyVersionLimits() {
         versionIndicator.textContent = APP_VERSION === 'free' ? 'Free' : 'Paid';
     }
 
-    // 커뮤니티 탭은 모든 버전에서 숨김
     document.querySelectorAll('.hidden-feature').forEach(el => {
         el.style.display = 'none';
     });
@@ -1412,11 +1423,9 @@ function applyVersionLimits() {
         return;
     }
 
-    // --- 무료 버전 제한 사항 적용 ---
     console.log("무료 버전으로 실행 중입니다.");
     document.body.classList.add('free-version');
 
-    // 1. 번호 생성기: 조합 수 1개로 고정, 나머지 비활성화
     document.querySelectorAll('.num-combo-btn').forEach(btn => {
         if (btn.dataset.value !== '1') {
             btn.disabled = true;
@@ -1426,22 +1435,17 @@ function applyVersionLimits() {
         }
     });
 
-    // 2. 당첨 통계 조회: '번호 분석' 버튼 비활성화
-    document.querySelectorAll('.lotto-prob-check-btn').forEach(btn => {
-        btn.onclick = (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            alert("'번호 분석' 기능은 유료 버전에서만 사용 가능합니다.");
-        };
-    });
-    const roundAnalysisBtn = document.getElementById('round-analysis-btn');
-    roundAnalysisBtn.onclick = (e) => {
+    const disableAnalysisFeature = (e) => {
         e.preventDefault();
         e.stopPropagation();
         alert("'번호 분석' 기능은 유료 버전에서만 사용 가능합니다.");
     };
 
-    // 3. 고급 설정: 특정 옵션 비활성화
+    document.querySelectorAll('.lotto-prob-check-btn').forEach(btn => {
+        btn.onclick = disableAnalysisFeature;
+    });
+    document.getElementById('round-analysis-btn').onclick = disableAnalysisFeature;
+
     document.getElementById('exclude-winners-checkbox').disabled = true;
     
     const minAppearanceSelect = document.getElementById('min-appearance-select');

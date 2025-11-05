@@ -280,6 +280,10 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .stat-btn:hover { background: #FFB300; }
 .stat-btn:disabled { background: #ccc; cursor: not-allowed; }
 .stat-btn:active { transform: scale(0.95); }
+.stat-btn .small-text {
+    font-size: calc(1em - 2px);
+    color: #555;
+}
 
 /* --- 당첨 통계 조회 탭 스타일 --- */
 .filter-controls-container { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; justify-content: center; flex-wrap: wrap; }
@@ -360,7 +364,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     color: #888;
 }
 
-.stat-detail-result { width: 312px; height: 100px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 5px; text-align: left; background: #fff; font-size: 0.85em; overflow-y: auto; }
+.stat-detail-result { width: 312px; height: 75px; border: 1px solid #e0e0e0; border-radius: 8px; padding: 5px; text-align: left; background: #fff; font-size: 0.85em; overflow-y: auto; }
 
 .stat-detail-result ul { list-style-type: none; padding-left: 0; margin: 0; }
 .stat-detail-result li { background: #f9f9f9; padding: 2px 6px; margin-bottom: 3px; border-radius: 4px; border-left: 3px solid; white-space: nowrap; }
@@ -530,7 +534,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .round-lookup-controls input[type="number"] {
     flex-grow: 1;
     text-align: center;
-    width: auto;
+    min-width: 50px; /* 최소 너비 지정 */
 }
 .round-lookup-controls .stat-btn {
     flex-shrink: 0;
@@ -982,13 +986,13 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin: 0;
 }
 #run-analysis-btn {
-    margin: 10px 0px 0px 10px;
+    margin: 10px 0px 0px 0px;
 }
 #fill-numbers-btn {
     margin-top: 10px;
 }
 #analysis-result-container {
-    margin: 12px;
+    margin: 12px auto; /* 중앙 정렬 */
     background: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
