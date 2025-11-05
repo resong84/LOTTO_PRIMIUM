@@ -80,7 +80,24 @@ body {
 }
 .background-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('background-pattern.png'); background-repeat: repeat; opacity: 1; z-index: 1; }
 .content-layer { position: relative; z-index: 2; transition: min-height 0.3s ease; flex-grow: 1; display: flex; flex-direction: column; }
-h1 { color: #FFC107; margin: 10px 0px 10px; font-size: 2.4em; font-weight: 700; }
+h1 { 
+    color: #FFC107; 
+    margin: 10px 0px 10px; 
+    font-size: 2.4em; 
+    font-weight: 700; 
+    position: relative; /* 버전 표시를 위해 추가 */
+}
+#version-indicator {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.4em;
+    font-weight: 700;
+    color: #aaa;
+    background-color: #f0f0f0;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
 .input-frame, .output-frame { border: 1px solid #dcdcdc; border-radius: 8px; padding: 8px; margin-bottom: 20px; background-color: #ffffff; }
 h2 { color: #424242; margin-top: 0; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #FFC107; padding-bottom: 5px; display: inline-block; font-weight: 700; }
 
@@ -258,7 +275,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin: 0;
 }
 
-.settings-section { background: #f8f9fa; border-radius: 15px; padding: 8px 10px; margin-bottom: 10px; }
+.settings-section { background: #f8f9fa; border-radius: 15px; padding: 8px 10px; margin: 0px 0px 2px; }
 .stat-btn { padding: 3px 6px; font-size: 0.95em; border-radius: 8px; border: none; background: #FFC107; color: #333; cursor: pointer; margin-left: 10px; font-weight: 700; transition: background-color 0.3s, transform 0.1s; }
 .stat-btn:hover { background: #FFB300; }
 .stat-btn:disabled { background: #ccc; cursor: not-allowed; }
@@ -454,16 +471,25 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     cursor: not-allowed;
 }
 
-.stat-buttons-container { display: flex; justify-content: center; align-items: center; text-align: center; }
+.stat-buttons-container { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    text-align: center; 
+    gap: 12px; /* 버튼과 카운터 사이 간격 */
+}
+.stat-buttons-wrapper {
+    display: flex;
+    gap: 12px;
+}
 #auto-gen-counter {
-    display: inline-block;
+    display: none; /* 기본적으로 숨김 */
     padding: 2px 3px;
     font-size: 0.85em;
     border-radius: 8px;
     border: none;
     background: #f0d78e;
     color: #333;
-    margin-left: 12px;
     font-weight: 700;
     min-width: 70px;
     text-align: center;
@@ -471,27 +497,52 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 }
 .non-winning-num { font-size: 0.8em; color: #aaa; }
 
-/* --- [신규] 회차별 당첨 번호 조회 스타일 --- */
-#round-lookup-container {
-    margin-top: 15px;
-    padding: 12px;
+/* --- 회차별 당첨 번호 조회 스타일 --- */
+#round-lookup-container.settings-section {
+    margin: 2px 0px 6px;
+    padding: 6px;
 }
-#round-lookup-container h3 {
-    margin: 0 0 10px 0;
+#round-lookup-toggle-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
     font-size: 1.1em;
+    font-weight: 700;
     color: #424242;
-    padding-bottom: 5px;
+    padding: 5px;
+    cursor: pointer;
+    text-align: left;
     border-bottom: 2px solid #FFC107;
-    display: inline-block;
+}
+.round-lookup-content {
+    display: none; /* 기본적으로 접힌 상태 */
+    padding-top: 10px;
+}
+#round-lookup-container.open .round-lookup-content {
+    display: block; /* 열렸을 때 보임 */
 }
 .round-lookup-controls {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 12px;
+    align-items: center;
 }
 .round-lookup-controls input[type="number"] {
     flex-grow: 1;
     text-align: center;
+    width: auto;
+}
+.round-lookup-controls .stat-btn {
+    flex-shrink: 0;
+    margin-left: 0;
+}
+.round-lookup-controls .arrow-btn {
+    padding: 3px 6px;
+    font-size: 0.95em;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
 }
 /* Chrome, Safari, Edge, Opera에서 숫자 입력 화살표 숨기기 */
 .round-lookup-controls input::-webkit-outer-spin-button,
@@ -503,10 +554,6 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .round-lookup-controls input[type=number] {
   -moz-appearance: textfield;
 }
-.round-lookup-controls .stat-btn {
-    flex-shrink: 0;
-    margin-left: 0;
-}
 #round-result-display {
     display: flex;
     justify-content: center;
@@ -515,7 +562,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     min-height: 40px;
     background-color: #fff;
     border-radius: 8px;
-    padding: 8px;
+    padding: 2px;
     border: 1px solid #e0e0e0;
 }
 .winning-num-ball {
@@ -891,6 +938,9 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
 .prob-result-item.neutral {
     background-image: linear-gradient(to bottom right, #ffffff, #e0e0e0);
 }
+.prob-result-item.highlight-red {
+    background-image: linear-gradient(to bottom right, #ffffff, #ffcdd2);
+}
 
 .prob-result-item * {
     color: #333 !important;
@@ -935,7 +985,7 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     margin: 10px 0px 0px 10px;
 }
 #fill-numbers-btn {
-    margin: 10px 0px 0px 10px;
+    margin-top: 10px;
 }
 #analysis-result-container {
     margin: 12px;
@@ -1010,4 +1060,27 @@ select:focus, input[type="number"]:focus { outline: none; border-color: #FFC107;
     font-weight: 700;
     cursor: pointer;
     margin-left: 4px;
+}
+
+/* --- 버전 관리용 스타일 --- */
+.hidden-feature {
+    display: none !important;
+}
+.disabled-for-free {
+    background-color: #e9ecef !important;
+    color: #aaa !important;
+    cursor: not-allowed !important;
+    border-color: #ddd !important;
+}
+.disabled-for-free:hover {
+    transform: none !important;
+}
+body.free-version .adv-radio-group label.disabled-for-free {
+    color: #ccc !important;
+    background-color: #f8f9fa !important;
+    border-color: #e0e0e0 !important;
+}
+body.free-version select option:disabled {
+    background-color: #f0f0f0;
+    color: #999;
 }

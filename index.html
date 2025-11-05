@@ -21,14 +21,14 @@
         <div class="container">
             <div class="background-layer"></div>
             <div class="content-layer">
-                <h1>LOTTO 6/45</h1>
+                <h1>LOTTO 6/45<span id="version-indicator"></span></h1>
 
                 <div class="tab-menu">
                     <button class="tab-button active" onclick="showTab(1)">번호 생성기</button>
                     <button class="tab-button" onclick="showTab(2)">당첨 통계 조회</button>
                     <button class="tab-button" onclick="showTab(3)">번호 분석기</button>
                     <button class="tab-button" onclick="showTab(4)">고급 설정</button>
-                    <button class="tab-button" onclick="showTab(5)">커뮤니티</button>
+                    <button class="tab-button hidden-feature" onclick="showTab(5)">커뮤니티</button>
                 </div>
 
                 <!-- 탭 1: 로또 번호 생성기 -->
@@ -116,8 +116,10 @@
                                 </div>
 
                                 <div class="stat-buttons-container">
-                                    <button class="stat-btn" id="resetBtn" onclick="resetLottoStats()" style="margin-left:0;">초기화</button>
-                                    <button class="stat-btn" id="autoSelectAllBtn" onclick="autoSelectAll()" style="margin-left:12px;">랜덤 번호 조합</button>
+                                    <div class="stat-buttons-wrapper">
+                                        <button class="stat-btn" id="resetBtn" onclick="resetLottoStats()">초기화</button>
+                                        <button class="stat-btn" id="autoSelectAllBtn" onclick="autoSelectAll()">랜덤 번호 조합</button>
+                                    </div>
                                     <span id="auto-gen-counter">총 0회</span>
                                 </div>
 
@@ -129,15 +131,19 @@
                         </div>
                     </div>
                     
-                    <!-- [신규] 회차별 당첨 번호 조회 섹션 -->
                     <div id="round-lookup-container" class="settings-section">
-                        <h3>회차별 당첨 번호</h3>
-                        <div class="round-lookup-controls">
-                            <input type="number" id="round-input" placeholder="회차 입력">
-                            <button id="round-search-btn" class="stat-btn">조회</button>
-                        </div>
-                        <div id="round-result-display">
-                            <!-- 당첨 번호가 여기에 표시됩니다. -->
+                        <button id="round-lookup-toggle-btn">회차별 당첨 번호 조회 ▼</button>
+                        <div class="round-lookup-content">
+                            <div class="round-lookup-controls">
+                                <button id="round-prev-btn" class="arrow-btn">◀</button>
+                                <input type="number" id="round-input" placeholder="회차 입력">
+                                <button id="round-next-btn" class="arrow-btn">▶</button>
+                                <button id="round-search-btn" class="stat-btn">조회</button>
+                                <button id="round-analysis-btn" class="stat-btn" disabled>번호 분석</button>
+                            </div>
+                            <div id="round-result-display">
+                                <!-- 당첨 번호가 여기에 표시됩니다. -->
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +243,7 @@
                 </div>
 
                 <!-- 탭 5: 커뮤니티 -->
-                <div id="tab5" class="tab-content">
+                <div id="tab5" class="tab-content hidden-feature">
                     <div class="input-frame">
                         <h2>커뮤니티 글쓰기</h2>
                         <div class="community-post-box">

@@ -2,6 +2,13 @@
 // ===== 전역 변수 선언 =====
 // ==================================================================
 
+// --- 버전 관리 변수 (빌드 또는 URL 파라미터로 설정) ---
+let APP_VERSION = 'paid'; // 기본값은 'paid'
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('version') === 'free') {
+    APP_VERSION = 'free';
+}
+
 // --- 데이터 변수 (앱 전역에서 사용) ---
 let probDf = null;
 let lottoData = {};
@@ -16,6 +23,7 @@ let lockedNums = {A:[], B:[]};
 let isWinFound = false;
 let autoGenerateInterval = null;
 let autoGenerateCount = 0;
+let previewTimer = null; // 미리보기용 타이머 변수
 
 // --- 번호 분석기 탭 변수 ---
 let selectedProbNums = [];
@@ -66,9 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
             lottoData = createLottoDataObject(probDf);
 
             document.getElementById('generate-button').disabled = false;
-            // [수정] 초기 로딩 시 버튼 상태는 renderProbPaper에서 관리하므로 이 줄은 제거해도 무방합니다.
-            // document.getElementById('viewProbBtn').disabled = false; 
-
         } catch (e) {
             alert(`'lotto_data.json' 파일을 불러오는 데 실패했습니다: ${e.message}`);
         }
@@ -166,11 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const addGameBtn = document.getElementById('add-game-btn');
-    addGameBtn.addEventListener('click', () => {
-        document.getElementById('lotto-game-B').style.display = 'flex';
-        document.getElementById('statDetailResultB').style.display = 'block';
-        document.getElementById('game-B-placeholder').style.display = 'none';
-    });
+    addGameBtn.addEventListener('click', addGameB);
     
     const removeGameBBtn = document.getElementById('remove-game-B-btn');
     removeGameBBtn.addEventListener('click', removeGameB);
@@ -230,17 +231,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // [신규] 회차별 당첨 번호 조회 이벤트 리스너
-    const roundSearchBtn = document.getElementById('round-search-btn');
-    const roundInput = document.getElementById('round-input');
-    roundSearchBtn.addEventListener('click', searchRound);
-    roundInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            searchRound();
-        }
+    // 회차별 당첨 번호 조회 관련 이벤트 리스너
+    const roundLookupToggleBtn = document.getElementById('round-lookup-toggle-btn');
+    const roundLookupContainer = document.getElementById('round-lookup-container');
+    roundLookupToggleBtn.addEventListener('click', () => {
+        const isOpen = roundLookupContainer.classList.toggle('open');
+        roundLookupToggleBtn.innerHTML = isOpen ? '회차별 당첨 번호 조회 ▲' : '회차별 당첨 번호 조회 ▼';
     });
 
+    document.getElementById('round-search-btn').addEventListener('click', searchRound);
+    document.getElementById('round-input').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') searchRound();
+    });
+    document.getElementById('round-prev-btn').addEventListener('click', () => navigateRound(-1));
+    document.getElementById('round-next-btn').addEventListener('click', () => navigateRound(1));
+    document.getElementById('round-analysis-btn').addEventListener('click', analyzeRoundNumbers);
+
     window.openImagePopup = openImagePopup;
+
+    // 버전별 기능 제한 적용
+    applyVersionLimits();
 });
 
 // ==================================================================
@@ -256,7 +266,6 @@ async function loadLottoHistory() {
         }
         lottoHistory = await response.json();
 
-        // [신규] 데이터 로드 후 최신 회차 정보 표시
         if (lottoHistory.length > 0) {
             const latestDraw = lottoHistory[0];
             const latestRoundNumber = latestDraw[0];
@@ -446,7 +455,8 @@ function get_random_number_from_column(prob_df, column_name, selection_type, exc
     let initial_rows = prob_df.data;
 
     if (selection_type === 'random') {
-        const min_appearance = parseInt(document.getElementById('min-appearance-select').value);
+        const min_appearance_select = document.getElementById('min-appearance-select');
+        const min_appearance = parseInt(min_appearance_select.value);
         initial_rows = prob_df.data.filter(row => row[base_column_name] > min_appearance);
     }
 
@@ -464,7 +474,8 @@ function get_random_number_from_column(prob_df, column_name, selection_type, exc
 
     if (final_eligible_numbers.length === 0) {
         if (selection_type === 'random') {
-             const min_appearance = parseInt(document.getElementById('min-appearance-select').value);
+             const min_appearance_select = document.getElementById('min-appearance-select');
+             const min_appearance = parseInt(min_appearance_select.value);
              final_eligible_numbers = prob_df.data
                 .filter(row => row[base_column_name] > min_appearance)
                 .map(row => row.번호)
@@ -547,6 +558,38 @@ function renderLottoPaper() {
         }
         probCheckBtn.style.display = (totalSelectedCount === 6) ? 'inline-block' : 'none';
     });
+}
+
+function addGameB() {
+    if (APP_VERSION === 'free') {
+        // 10초 미리보기 기능
+        if (previewTimer) return; // 이미 미리보기가 실행 중이면 중복 실행 방지
+        
+        alert('게임 보드 추가는 유료 버전 기능입니다. 10초간 미리보기를 시작합니다.');
+        
+        const gameB = document.getElementById('lotto-game-B');
+        const statB = document.getElementById('statDetailResultB');
+        const placeholder = document.getElementById('game-B-placeholder');
+
+        gameB.style.display = 'flex';
+        statB.style.display = 'block';
+        placeholder.style.display = 'none';
+        
+        // 10초 후 원래대로 되돌림
+        previewTimer = setTimeout(() => {
+            gameB.style.display = 'none';
+            statB.style.display = 'none';
+            placeholder.style.display = 'flex';
+            alert('10초 미리보기가 종료되었습니다. 유료 버전을 구매하여 모든 기능을 사용해보세요!');
+            previewTimer = null; // 타이머 초기화
+        }, 10000);
+
+    } else {
+        // 유료 버전의 정상 기능
+        document.getElementById('lotto-game-B').style.display = 'flex';
+        document.getElementById('statDetailResultB').style.display = 'block';
+        document.getElementById('game-B-placeholder').style.display = 'none';
+    }
 }
 
 function removeGameB() {
@@ -674,7 +717,7 @@ function resetLottoStats() {
     document.getElementById('statDetailResultB').innerHTML = '';
     autoGenerateCount = 0;
     const counterSpan = document.getElementById('auto-gen-counter');
-    counterSpan.textContent = '';
+    counterSpan.textContent = `총 0회`;
     counterSpan.style.display = 'none';
     document.getElementById('lotto-game-B').style.display = 'none';
     document.getElementById('statDetailResultB').style.display = 'none';
@@ -1028,7 +1071,6 @@ function renderProbPaper() {
         else grid3.appendChild(btn);
     }
 
-    // [수정] '번호 분석하기' 버튼 활성화 로직 추가
     const viewProbBtn = document.getElementById('viewProbBtn');
     if (viewProbBtn) {
         viewProbBtn.disabled = selectedProbNums.length !== 6;
@@ -1037,15 +1079,7 @@ function renderProbPaper() {
 
 function resetProbPaper() {
     selectedProbNums = [];
-    selectedForAnalysis = [];
-    selectedFromResult = [];
-    document.getElementById('prob-check-output-text').innerHTML = '';
-    document.querySelector('#tab3 .prob-output-frame').style.display = 'none';
-    
-    const analysisSection = document.getElementById('analysis-section');
-    analysisSection.innerHTML = '';
-    analysisSection.style.display = 'none';
-
+    revertAnalysisPreview(false); // 미리보기 상태 및 UI 모두 초기화
     renderProbPaper();
 }
 
@@ -1054,6 +1088,13 @@ function classifyProbability(prob) {
 }
 
 function viewProbability() {
+    if (APP_VERSION === 'free' && !previewTimer) {
+        alert('\'번호 분석하기\'는 유료 버전 기능입니다. 10초간 미리보기를 시작합니다.');
+        previewTimer = setTimeout(() => {
+            revertAnalysisPreview(true);
+        }, 10000);
+    }
+
     if (selectedProbNums.length !== 6) {
         alert("6개의 번호를 선택해주세요.");
         return;
@@ -1098,6 +1139,27 @@ function viewProbability() {
     document.getElementById('run-analysis-btn').addEventListener('click', runDeepAnalysis);
 }
 
+function revertAnalysisPreview(showAlert = true) {
+    if (previewTimer) {
+        clearTimeout(previewTimer);
+        previewTimer = null;
+    }
+    
+    selectedForAnalysis = [];
+    selectedFromResult = [];
+
+    document.getElementById('prob-check-output-text').innerHTML = '';
+    document.querySelector('#tab3 .prob-output-frame').style.display = 'none';
+    
+    const analysisSection = document.getElementById('analysis-section');
+    analysisSection.innerHTML = '';
+    analysisSection.style.display = 'none';
+
+    if (showAlert) {
+        alert('10초 미리보기가 종료되었습니다. 유료 버전을 구매하여 모든 기능을 사용해보세요!');
+    }
+}
+
 function toggleAnalysisSelection(element, number) {
     if (selectedForAnalysis.includes(number)) {
         selectedForAnalysis = selectedForAnalysis.filter(n => n !== number);
@@ -1132,7 +1194,7 @@ function runDeepAnalysis() {
         });
         selectedFromResult = [];
     }
-    const analysisSection = document.getElementById('analysis-section');
+    
     let existingResult = document.getElementById('analysis-result-container');
     if (existingResult) existingResult.remove();
     
@@ -1172,6 +1234,7 @@ function runDeepAnalysis() {
         sortedCompanions.forEach(([num, count], index) => {
             const item = createResultItem(num, count);
             if (index < 2) {
+                item.classList.add('highlight-red'); // 상위 2개 강조
                 row1.appendChild(item);
             } else {
                 row2.appendChild(item);
@@ -1182,19 +1245,15 @@ function runDeepAnalysis() {
         mostFrequentContainer.appendChild(row2);
         resultContainer.appendChild(mostFrequentContainer);
 
-        const actionsContainer = document.querySelector('.analysis-actions-container');
-        let existingFillBtn = document.getElementById('fill-numbers-btn');
-        if(existingFillBtn) existingFillBtn.remove();
-
         const fillBtn = document.createElement('button');
         fillBtn.id = 'fill-numbers-btn';
         fillBtn.className = 'stat-btn';
         fillBtn.textContent = '선택 번호로 통계 조회';
         fillBtn.onclick = fillRemainingNumbers;
-        actionsContainer.appendChild(fillBtn);
+        resultContainer.appendChild(fillBtn); // 결과창 아래에 버튼 추가
     }
 
-    analysisSection.appendChild(resultContainer);
+    document.getElementById('analysis-section').appendChild(resultContainer);
 }
 
 function createResultItem(number, count) {
@@ -1245,7 +1304,7 @@ function fillRemainingNumbers() {
 }
 
 // ==================================================================
-// ===== [신규] 회차별 당첨 번호 조회 함수 =====
+// ===== 회차별 당첨 번호 조회 함수 =====
 // ==================================================================
 
 function searchRound() {
@@ -1253,7 +1312,7 @@ function searchRound() {
     const roundNumber = parseInt(roundInput.value);
 
     if (isNaN(roundNumber) || roundNumber < 1) {
-        displayWinningNumbers(null); // 오류 메시지 표시
+        displayWinningNumbers(null);
         return;
     }
 
@@ -1263,24 +1322,27 @@ function searchRound() {
 
 function displayWinningNumbers(drawData) {
     const resultDisplay = document.getElementById('round-result-display');
+    const analysisBtn = document.getElementById('round-analysis-btn');
     resultDisplay.innerHTML = '';
 
     if (!drawData) {
         resultDisplay.textContent = '해당 회차의 당첨 정보를 찾을 수 없습니다.';
         resultDisplay.style.color = '#e53935';
+        analysisBtn.disabled = true;
         return;
     }
     resultDisplay.style.color = 'inherit';
+    analysisBtn.disabled = false;
 
     const bonusNumber = drawData[1];
     const winningNumbers = drawData.slice(2).sort((a, b) => a - b);
 
     const getColorForNumber = (num) => {
-        if (num <= 10) return '#fbc400'; // 노란색
-        if (num <= 20) return '#69c8f2'; // 파란색
-        if (num <= 30) return '#ff7272'; // 빨간색
-        if (num <= 40) return '#aaa';    // 회색
-        return '#b0d840';               // 녹색
+        if (num <= 10) return '#fbc400';
+        if (num <= 20) return '#69c8f2';
+        if (num <= 30) return '#ff7272';
+        if (num <= 40) return '#aaa';
+        return '#b0d840';
     };
 
     winningNumbers.forEach(num => {
@@ -1301,4 +1363,99 @@ function displayWinningNumbers(drawData) {
     bonusBall.style.backgroundColor = getColorForNumber(bonusNumber);
     bonusBall.textContent = bonusNumber;
     resultDisplay.appendChild(bonusBall);
+}
+
+function navigateRound(direction) {
+    const roundInput = document.getElementById('round-input');
+    let currentRound = parseInt(roundInput.value);
+    if (isNaN(currentRound)) currentRound = lottoHistory.length > 0 ? lottoHistory[0][0] : 1;
+    
+    const newRound = currentRound + direction;
+    if (newRound > 0 && lottoHistory.length > 0 && newRound <= lottoHistory[0][0]) {
+        roundInput.value = newRound;
+        searchRound();
+    }
+}
+
+function analyzeRoundNumbers() {
+    const resultDisplay = document.getElementById('round-result-display');
+    const balls = resultDisplay.querySelectorAll('.winning-num-ball:not(.bonus-num-ball)');
+    if (balls.length !== 6) {
+        alert('분석할 당첨 번호가 없습니다. 먼저 회차를 조회해주세요.');
+        return;
+    }
+    const numbersToAnalyze = Array.from(balls).map(ball => parseInt(ball.textContent));
+    
+    selectedProbNums = numbersToAnalyze;
+    renderProbPaper();
+    showTab(3);
+    viewProbability();
+}
+
+// ==================================================================
+// ===== 버전별 기능 제한 함수 =====
+// ==================================================================
+
+function applyVersionLimits() {
+    const versionIndicator = document.getElementById('version-indicator');
+    if (versionIndicator) {
+        versionIndicator.textContent = APP_VERSION === 'free' ? 'Free' : 'Paid';
+    }
+
+    // 커뮤니티 탭은 모든 버전에서 숨김
+    document.querySelectorAll('.hidden-feature').forEach(el => {
+        el.style.display = 'none';
+    });
+
+    if (APP_VERSION === 'paid') {
+        console.log("유료 버전으로 실행 중입니다.");
+        return;
+    }
+
+    // --- 무료 버전 제한 사항 적용 ---
+    console.log("무료 버전으로 실행 중입니다.");
+    document.body.classList.add('free-version');
+
+    // 1. 번호 생성기: 조합 수 1개로 고정, 나머지 비활성화
+    document.querySelectorAll('.num-combo-btn').forEach(btn => {
+        if (btn.dataset.value !== '1') {
+            btn.disabled = true;
+            btn.classList.add('disabled-for-free');
+        } else {
+            btn.classList.add('active');
+        }
+    });
+
+    // 2. 당첨 통계 조회: '번호 분석' 버튼 비활성화
+    document.querySelectorAll('.lotto-prob-check-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert("'번호 분석' 기능은 유료 버전에서만 사용 가능합니다.");
+        };
+    });
+    const roundAnalysisBtn = document.getElementById('round-analysis-btn');
+    roundAnalysisBtn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        alert("'번호 분석' 기능은 유료 버전에서만 사용 가능합니다.");
+    };
+
+    // 3. 고급 설정: 특정 옵션 비활성화
+    document.getElementById('exclude-winners-checkbox').disabled = true;
+    
+    const minAppearanceSelect = document.getElementById('min-appearance-select');
+    Array.from(minAppearanceSelect.options).forEach(option => {
+        if (parseInt(option.value) > 1) {
+            option.disabled = true;
+        }
+    });
+
+    document.querySelectorAll('input[name="speed-control"]').forEach(radio => {
+        if (radio.value !== '1000') {
+            radio.disabled = true;
+            const label = document.querySelector(`label[for="${radio.id}"]`);
+            if (label) label.classList.add('disabled-for-free');
+        }
+    });
 }
